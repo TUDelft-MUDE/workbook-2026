@@ -16,4 +16,4 @@ parts:
   chapters:
   - file: changelog.md
   - file: credits.md
-  - external: https://github.com/TUDelft-MUDE/teacher/blob/main/book/team/topics_people.md
+  - external: https://github.com/TUDelft-MUDE/teacher/blob/main/book/team/topics_people.md #BUMP
