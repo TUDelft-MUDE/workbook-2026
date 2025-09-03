@@ -12,6 +12,11 @@ parts:
     - file: assignments/PA1.1/4_install_mude_environment.md
     - file: assignments/PA1.1/5_test.ipynb
     - file: assignments/PA1.1/6_github_copilot.md
+# START REMOVE-FROM-PUBLISH
+  - file: assignments/WS1.1/README.md
+    sections:
+    - file: assignments/WS1.1/WS1.1_Warming_Up.ipynb
+# END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
