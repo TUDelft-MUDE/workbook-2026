@@ -15,6 +15,11 @@ parts:
   - file: assignments/WS1.1/README.md
     sections:
     - file: assignments/WS1.1/Warming_Up.ipynb
+# START REMOVE-FROM-RELEASE
+  - file: assignments/GA1.1/README.md
+    sections:
+    - file: assignments/GA1.1/analysis.ipynb
+# END REMOVE-FROM-RELEASE
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
