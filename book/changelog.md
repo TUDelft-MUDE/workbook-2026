@@ -3,6 +3,9 @@
 [TeachBooks Versioning](https://teachbooks.io/manual/features/versioning.html) is used (a special type of semantic numbering for educational purposes) with generic format `v<academic_year>.<additions>.<errata>`, with an additional `.pre-release` added for incomplete books.
 books.
 
+## 2025-09-05: v2025.4.0.pre-release
+Released assignment [](./assignments/GA1.1/README.md)
+
 ## 2025-09-03: v2025.3.1.pre-release
 Fixed wrong instruction for indexing lists in [](./assignments/WS1.1/Warming_Up.ipynb). `entry = list_name(index)` should be `entry = list_name[index]`
 
