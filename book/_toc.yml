@@ -19,6 +19,18 @@ parts:
     sections:
     - file: assignments/GA1.1/analysis.ipynb
     - file: assignments/GA1.1/report.md
+# START REMOVE-FROM-PUBLISH
+  - file: assignments/PA1.2/README.md
+    sections:
+    - file: assignments/PA1.2/1_upload_github.md
+    - file: assignments/PA1.2/2_markdown.md
+    - file: assignments/PA1.2/3_markdown_ipynb.ipynb
+    - file: assignments/PA1.2/4_visualize_matrix.ipynb
+    - file: assignments/PA1.2/5_creating_subplots.ipynb
+    - file: assignments/PA1.2/6_list_comprehension.ipynb
+    - file: assignments/PA1.2/7_filling_matrix.ipynb
+    - file: assignments/PA1.2/8_programming_fundamental_concepts.ipynb
+# END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
