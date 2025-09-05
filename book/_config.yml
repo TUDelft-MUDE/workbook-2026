@@ -32,6 +32,7 @@ sphinx:
         mtextInheritFont: true # To typeset text within math prettier
       }
     tud_change_logo: false
+    tud_change_titlesize: false
     named_colors_custom_colors: {'attributiongrey':[150,150,150]}
   extra_extensions:
     - sphinx.ext.imgconverter
