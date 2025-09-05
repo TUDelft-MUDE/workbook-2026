@@ -19,7 +19,6 @@ parts:
     sections:
     - file: assignments/GA1.1/analysis.ipynb
     - file: assignments/GA1.1/report.md
-# START REMOVE-FROM-PUBLISH
   - file: assignments/PA1.2/README.md
     sections:
     - file: assignments/PA1.2/1_upload_github.md
@@ -30,6 +29,7 @@ parts:
     - file: assignments/PA1.2/6_list_comprehension.ipynb
     - file: assignments/PA1.2/7_filling_matrix.ipynb
     - file: assignments/PA1.2/8_programming_fundamental_concepts.ipynb
+# START REMOVE-FROM-PUBLISH
 # END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
