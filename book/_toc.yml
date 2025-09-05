@@ -19,6 +19,7 @@ parts:
   - file: assignments/GA1.1/README.md
     sections:
     - file: assignments/GA1.1/analysis.ipynb
+    - file: assignments/GA1.1/report.md
 # END REMOVE-FROM-RELEASE
 - caption: Miscellaneous
   chapters:
