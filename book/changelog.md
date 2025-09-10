@@ -3,6 +3,10 @@
 [TeachBooks Versioning](https://teachbooks.io/manual/features/versioning.html) is used (a special type of semantic numbering for educational purposes) with generic format `v<academic_year>.<additions>.<errata>`, with an additional `.pre-release` added for incomplete books.
 books.
 
+## 2025-09-10: v2025.7.1.pre-release
+- Clarified instruction for uploading individual files vs folders in [](./assignments/PA1.2/1_upload_github.md)
+- Removed wrong instruction to check checkboard pattern in task 7.2 of [](./assignments/PA1.2/7_filling_matrix.ipynb)
+
 ## 2025-09-10: v2025.7.0.pre-release
 Added [](./assignments/WS1.2/README.md)
 
