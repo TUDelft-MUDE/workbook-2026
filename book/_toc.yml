@@ -30,6 +30,9 @@ parts:
     - file: assignments/PA1.2/7_filling_matrix.ipynb
     - file: assignments/PA1.2/8_programming_fundamental_concepts.ipynb
 # START REMOVE-FROM-PUBLISH
+  - file: assignments/WS1.2/README.md
+    sections:
+    - file: assignments/WS1.2/WS_1_2_exercise.ipynb
 # END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
