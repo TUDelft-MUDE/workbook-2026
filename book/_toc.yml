@@ -32,6 +32,12 @@ parts:
   - file: assignments/WS1.2/README.md
     sections:
     - file: assignments/WS1.2/WS_1_2_exercise.ipynb
+  - file: assignments/GA1.2/README.md
+    sections:
+    - file: assignments/GA1.2/1-discharge-numerical-integration.ipynb
+    - file: assignments/GA1.2/2-taylor-polynomials-logarithm.ipynb
+    - file: assignments/GA1.2/3-taylor-derivative-approximation.ipynb
+    - file: assignments/GA1.2/report.md
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
