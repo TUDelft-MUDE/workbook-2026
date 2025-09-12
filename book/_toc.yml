@@ -38,6 +38,12 @@ parts:
     - file: assignments/GA1.2/2-taylor-polynomials-logarithm.ipynb
     - file: assignments/GA1.2/3-taylor-derivative-approximation.ipynb
     - file: assignments/GA1.2/report.md
+  - file: assignments/PA1.3/README.md
+    sections:
+    - file: assignments/PA1.3/1_VS_share.ipynb
+    - file: assignments/PA1.3/2_IntelliSense.ipynb
+    - file: assignments/PA1.3/3_matrix_vector_manipulations.ipynb
+    - file: assignments/PA1.3/4_python_tutorial.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
