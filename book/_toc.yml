@@ -4,46 +4,53 @@ root: intro.md
 parts:
 - caption: Assignments
   chapters:
-  - file: assignments/PA1.1/README.md
+  - file: week1.md
     sections:
-    - file: assignments/PA1.1/1_enable_hidden_files.md
-    - file: assignments/PA1.1/2_install_conda.md
-    - file: assignments/PA1.1/3_install_VS_code.md
-    - file: assignments/PA1.1/4_install_mude_environment.md
-    - file: assignments/PA1.1/5_test.ipynb
-    - file: assignments/PA1.1/6_github_copilot.md
-  - file: assignments/WS1.1/README.md
+    - file: assignments/PA1.1/README.md
+      sections:
+      - file: assignments/PA1.1/1_enable_hidden_files.md
+      - file: assignments/PA1.1/2_install_conda.md
+      - file: assignments/PA1.1/3_install_VS_code.md
+      - file: assignments/PA1.1/4_install_mude_environment.md
+      - file: assignments/PA1.1/5_test.ipynb
+      - file: assignments/PA1.1/6_github_copilot.md
+    - file: assignments/WS1.1/README.md
+      sections:
+      - file: assignments/WS1.1/Warming_Up.ipynb
+    - file: assignments/GA1.1/README.md
+      sections:
+      - file: assignments/GA1.1/analysis.ipynb
+      - file: assignments/GA1.1/report.md
+  - file: week2.md
     sections:
-    - file: assignments/WS1.1/Warming_Up.ipynb
-  - file: assignments/GA1.1/README.md
+    - file: assignments/PA1.2/README.md
+      sections:
+      - file: assignments/PA1.2/1_upload_github.md
+      - file: assignments/PA1.2/2_markdown.md
+      - file: assignments/PA1.2/3_markdown_ipynb.ipynb
+      - file: assignments/PA1.2/4_visualize_matrix.ipynb
+      - file: assignments/PA1.2/5_creating_subplots.ipynb
+      - file: assignments/PA1.2/6_list_comprehension.ipynb
+      - file: assignments/PA1.2/7_filling_matrix.ipynb
+      - file: assignments/PA1.2/8_programming_fundamental_concepts.ipynb
+    - file: assignments/WS1.2/README.md
+      sections:
+      - file: assignments/WS1.2/WS_1_2_exercise.ipynb
+    - file: assignments/GA1.2/README.md
+      sections:
+      - file: assignments/GA1.2/1-discharge-numerical-integration.ipynb
+      - file: assignments/GA1.2/2-taylor-polynomials-logarithm.ipynb
+      - file: assignments/GA1.2/3-taylor-derivative-approximation.ipynb
+      - file: assignments/GA1.2/report.md
+  - file: week3.md
+    expand_sections: true
     sections:
-    - file: assignments/GA1.1/analysis.ipynb
-    - file: assignments/GA1.1/report.md
-  - file: assignments/PA1.2/README.md
-    sections:
-    - file: assignments/PA1.2/1_upload_github.md
-    - file: assignments/PA1.2/2_markdown.md
-    - file: assignments/PA1.2/3_markdown_ipynb.ipynb
-    - file: assignments/PA1.2/4_visualize_matrix.ipynb
-    - file: assignments/PA1.2/5_creating_subplots.ipynb
-    - file: assignments/PA1.2/6_list_comprehension.ipynb
-    - file: assignments/PA1.2/7_filling_matrix.ipynb
-    - file: assignments/PA1.2/8_programming_fundamental_concepts.ipynb
-  - file: assignments/WS1.2/README.md
-    sections:
-    - file: assignments/WS1.2/WS_1_2_exercise.ipynb
-  - file: assignments/GA1.2/README.md
-    sections:
-    - file: assignments/GA1.2/1-discharge-numerical-integration.ipynb
-    - file: assignments/GA1.2/2-taylor-polynomials-logarithm.ipynb
-    - file: assignments/GA1.2/3-taylor-derivative-approximation.ipynb
-    - file: assignments/GA1.2/report.md
-  - file: assignments/PA1.3/README.md
-    sections:
-    - file: assignments/PA1.3/1_VS_share.ipynb
-    - file: assignments/PA1.3/2_IntelliSense.ipynb
-    - file: assignments/PA1.3/3_matrix_vector_manipulations.ipynb
-    - file: assignments/PA1.3/4_python_tutorial.ipynb
+    - file: assignments/PA1.3/README.md
+      sections:
+      - file: assignments/PA1.3/1_VS_share.ipynb
+      - file: assignments/PA1.3/2_IntelliSense.ipynb
+      - file: assignments/PA1.3/3_matrix_vector_manipulations.ipynb
+      - file: assignments/PA1.3/4_python_tutorial.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
