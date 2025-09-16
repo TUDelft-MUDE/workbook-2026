@@ -43,7 +43,6 @@ parts:
       - file: assignments/GA1.2/3-taylor-derivative-approximation.ipynb
       - file: assignments/GA1.2/report.md
   - file: week3.md
-    expand_sections: true
     sections:
     - file: assignments/PA1.3/README.md
       sections:
