@@ -17,7 +17,7 @@
 [submodule "book/assignments/WS1.3"]
 	path = book/assignments/WS1.3
 	url = https://github.com/MUDE-2025/WS1.3.git
-	branch = assignment
+	branch = solution
 [submodule "book/assignments/WS1.4"]
 	path = book/assignments/WS1.4
 	url = https://github.com/MUDE-2025/WS1.4.git
