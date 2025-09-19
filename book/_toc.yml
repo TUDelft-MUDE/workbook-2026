@@ -54,6 +54,9 @@ parts:
       sections:
       - file: assignments/WS1.3/1-solving-initial-value-problems.ipynb
       - file: assignments/WS1.3/2-solving-boundary-value-problems.ipynb
+    - file: assignments/GA1.3/README.md
+      sections:
+      - file: assignments/GA1.3/GA1.3_rain_roots_and_runoff.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
