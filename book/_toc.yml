@@ -54,11 +54,23 @@ parts:
       sections:
       - file: assignments/WS1.3/1-solving-initial-value-problems.ipynb
       - file: assignments/WS1.3/2-solving-boundary-value-problems.ipynb
-    # START REMOVE-FROM-PUBLISH
     - file: assignments/GA1.3/README.md
       sections:
       - file: assignments/GA1.3/GA1.3_rain_roots_and_runoff.ipynb
-    # END REMOVE-FROM-PUBLISH
+      - file: assignments/GA1.3/report_GA1.3.md
+    - file: weeks/week4.md
+    sections:
+    - file: assignments/PA1.4/README.md
+      sections:
+      - file: assignments/PA1.4/1_install_github_desktop.md
+      - file: assignments/PA1.4/2_commit_local.md
+      - file: assignments/PA1.4/3_commit_online.md
+      - file: assignments/PA1.4/4_fetch_pull.md
+      - file: assignments/PA1.4/5_install_git.md
+      - file: assignments/PA1.4/6_data_cleaning.ipynb
+      - file: assignments/PA1.4/7_data_import.md
+      - file: assignments/PA1.4/8_programming_fundamental_concepts.ipynb
+
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
