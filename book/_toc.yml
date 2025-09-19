@@ -57,6 +57,7 @@ parts:
     - file: assignments/GA1.3/README.md
       sections:
       - file: assignments/GA1.3/GA1.3_rain_roots_and_runoff.ipynb
+      - file: assignments/GA1.3/report_GA1.3.md
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
