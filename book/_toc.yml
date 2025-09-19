@@ -58,7 +58,7 @@ parts:
       sections:
       - file: assignments/GA1.3/GA1.3_rain_roots_and_runoff.ipynb
       - file: assignments/GA1.3/report_GA1.3.md
-    - file: weeks/week4.md
+  - file: weeks/week4.md
     sections:
     - file: assignments/PA1.4/README.md
       sections:
