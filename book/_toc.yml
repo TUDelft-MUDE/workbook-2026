@@ -68,7 +68,7 @@ parts:
       - file: assignments/PA1.4/4_fetch_pull.md
       - file: assignments/PA1.4/5_install_git.md
       - file: assignments/PA1.4/6_data_cleaning.ipynb
-      - file: assignments/PA1.4/7_data_import.md
+      - file: assignments/PA1.4/7_data_import.ipynb
       - file: assignments/PA1.4/8_programming_fundamental_concepts.ipynb
 
 - caption: Miscellaneous
