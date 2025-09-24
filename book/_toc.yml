@@ -70,6 +70,9 @@ parts:
       - file: assignments/PA1.4/6_data_cleaning.ipynb
       - file: assignments/PA1.4/7_data_import.ipynb
       - file: assignments/PA1.4/8_programming_fundamental_concepts.ipynb
+    - file: assignments/WS1.4/README.md
+      sections:
+      - file: assignments/WS1.3/Fit_happens.ipynb
 
 - caption: Miscellaneous
   chapters:
