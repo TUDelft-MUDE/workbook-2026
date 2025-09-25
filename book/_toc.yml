@@ -73,7 +73,16 @@ parts:
     - file: assignments/WS1.4/README.md
       sections:
       - file: assignments/WS1.4/Fit_happens.ipynb
-
+  # START REMOVE-FROM-PUBLISH    
+    - file: assignments/GA1.4/README.md
+      sections:
+      - file: assignments/GA1.4/01_wind_gusts/01_analysis_wind_gusts.ipynb
+      - file: assignments/GA1.4/01_wind_gusts/Report_wind_gusts.md
+      - file: assignments/GA1.4/02_traffic/02_analysis_traffic.ipynb
+      - file: assignments/GA1.4/02_traffic/Report_traffic.md
+      - file: assignments/GA1.4/03_river_flow_velocity/03_analysis_discharge.ipynb
+      - file: assignments/GA1.4/03_river_flow_velocity/Report_flow_velocity.md
+  # END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
