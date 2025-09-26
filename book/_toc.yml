@@ -81,6 +81,14 @@ parts:
       - file: assignments/GA1.4/02_traffic/Report_traffic.md
       - file: assignments/GA1.4/03_river_flow_velocity/03_analysis_discharge.ipynb
       - file: assignments/GA1.4/03_river_flow_velocity/Report_flow_velocity.md
+  - file: weeks/week5.md
+    sections:
+    - file: assignments/PA1.5/README.md
+      sections:
+      - file: assignments/PA1.5/1_crossword.md
+      - file: assignments/PA1.5/2_ice_classic.md
+      - file: assignments/PA1.5/3_scipy_statcs_3d_plots.ipynb
+
 
 - caption: Miscellaneous
   chapters:
