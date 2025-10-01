@@ -5,6 +5,7 @@
 
 ## 2025-10-01: v2025.21.1. pre-release
 Added solution to [](./assignments/GA1.4/README.md).
+
 Added solution to [](./assignments/WS1.5/README.md).
 
 ## 2025-09-31: v2025.21. pre-release
