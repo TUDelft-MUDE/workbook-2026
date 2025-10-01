@@ -89,11 +89,9 @@ parts:
       - file: assignments/PA1.5/2_ice_classic.md
       - file: assignments/PA1.5/3_scipy_statcs_3d_plots.ipynb
 
-# START REMOVE-FROM-PUBLISH      
     - file: assignments/WS1.5/README.md
       sections:
       - file: assignments/WS1.5/to_starve_or_not.ipynb
-# END REMOVE-FROM-PUBLISH
 
 - caption: Miscellaneous
   chapters:
