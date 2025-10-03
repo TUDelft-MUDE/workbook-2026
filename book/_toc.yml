@@ -94,7 +94,55 @@ parts:
     - file: assignments/GA1.5/README.md
       sections:
       - file: assignments/GA1.5/gaussian_and_furious.ipynb
-
+# START REMOVE-FROM-PUBLISH
+  - file: weeks/week_6.md
+    sections:
+    - file: assignments/PA1.6/README.md
+      sections:
+      - file: assignments/PA1.6/1_py_files.md
+      - file: assignments/PA1.6/2_activate_github_copilot.md
+        sections:
+        - file: assignments/PA1.6/script.md
+      - file: assignments/PA1.6/3_LLMs_in_Practice.md
+        sections:
+        - file: assignments/PA1.6/main.md
+          sections:
+          - file: assignments/PA1.6/controllers/controllers.md
+            sections:
+            - file: assignments/PA1.6/controllers/__init__.md
+            - file: assignments/PA1.6/controllers/onoff.md
+            - file: assignments/PA1.6/controllers/predictive_onoff.md
+          - file: assignments/PA1.6/plotting/plotting.md
+            sections:
+            - file: assignments/PA1.6/plotting/__init__.md
+            - file: assignments/PA1.6/plotting/plots.md
+          - file: assignments/PA1.6/scenarios/scenarios.md
+            sections:
+            - file: assignments/PA1.6/scenarios/__init__.md
+            - file: assignments/PA1.6/scenarios/cold_morning.md
+            - file: assignments/PA1.6/scenarios/door_open.md
+            - file: assignments/PA1.6/scenarios/runner.md
+          - file: assignments/PA1.6/sensors/sensors.md
+            sections:
+            - file: assignments/PA1.6/sensors/__init__.md
+            - file: assignments/PA1.6/sensors/filters.md
+            - file: assignments/PA1.6/sensors/temp_sensor.md
+          - file: assignments/PA1.6/simulations/simulations.md
+            sections:
+            - file: assignments/PA1.6/simulations/__init__.md
+            - file: assignments/PA1.6/simulations/environment.md
+            - file: assignments/PA1.6/simulations/room_model.md
+          - file: assignments/PA1.6/tests/tests.md
+            sections:
+            - file: assignments/PA1.6/tests/__init__.md
+            - file: assignments/PA1.6/tests/test_onoff.md
+            - file: assignments/PA1.6/tests/test_predictive_onoff.md
+          - file: assignments/PA1.6/utils/utils.md
+            sections:
+            - file: assignments/PA1.6/utils/__init__.md
+            - file: assignments/PA1.6/utils/config.md
+            - file: assignments/PA1.6/utils/rng.md
+# END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
