@@ -127,6 +127,8 @@ parts:
         - file: assignments/PA1.6/utils/config.md
         - file: assignments/PA1.6/utils/rng.md
 # START REMOVE-FROM-PUBLISH
+      sections:
+      - file: assignments/WS1.6/pipe_dreams.ipynb
 # END REMOVE-FROM-PUBLISH
 - caption: Miscellaneous
   chapters:
