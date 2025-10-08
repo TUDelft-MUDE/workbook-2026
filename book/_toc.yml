@@ -96,7 +96,9 @@ parts:
       - file: assignments/GA1.5/gaussian_and_furious.ipynb
   - file: weeks/week6.md
     sections:
-    - file: assignments/WS1.6/pipe_dreams.ipynb
+    - file: assignments/WS1.6/README.md
+      sections:
+      - file: assignments/WS1.6/pipe_dreams.ipynb
     - file: assignments/PA1.6/README.md
       sections:
       - file: assignments/PA1.6/1_py_files.md
