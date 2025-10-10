@@ -94,6 +94,7 @@ parts:
     - file: assignments/GA1.5/README.md
       sections:
       - file: assignments/GA1.5/gaussian_and_furious.ipynb
+      - file: assignments/GA1.5/report.md
   - file: weeks/week6.md
     sections:
     - file: assignments/PA1.6/README.md
