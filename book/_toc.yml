@@ -146,7 +146,7 @@ parts:
 # START REMOVE-FROM-PUBLISH
     - file: assignments/WS1.7/README.md
       sections:
-      - file: assignments/WS1.7/notebook.ipynb
+      - file: assignments/WS1.7/is_it_melting.ipynb
 
 # END REMOVE-FROM-PUBLISH
 
