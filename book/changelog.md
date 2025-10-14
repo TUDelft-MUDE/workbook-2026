@@ -5,6 +5,9 @@
 ## 2025-10-10: v2025.27.0. pre-release
 Released [](./assignments/WS1.7/README.md).
 
+## 2025-10-10: v2025.26.1.pre-release
+Added solution to [](./assignments/PA1.6/README.md).
+
 ## 2025-10-10: v2025.26.0. pre-release
 Released [](./assignments/PA1.7/README.md).
 
