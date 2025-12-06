@@ -121,34 +121,34 @@ jobs:
           git checkout no_solutions
           git reset --hard origin/no_solutions
 
-          # Merge draft into no_solutions but preserve .gitmodules to avoid conflicts
+          # Merge release into no_solutions but preserve .gitmodules to avoid conflicts
           # Save current .gitmodules
           if [ -f .gitmodules ]; then
             cp .gitmodules .gitmodules.bak
           fi
-          # Merge draft
-          git fetch origin draft
-          git merge --no-edit origin/draft || true
+          # Merge release
+          git fetch origin release
+          git merge --no-edit origin/release || true
           # If merge changed .gitmodules, restore the backup
           if [ -f .gitmodules.bak ]; then
             if ! cmp -s .gitmodules .gitmodules.bak; then
               echo ".gitmodules changed by merge; restoring previous version to avoid conflicts"
               mv .gitmodules.bak .gitmodules
               git add .gitmodules
-              git commit -m "Keep existing .gitmodules while merging draft into no_solutions" || true
+              git commit -m "Keep existing .gitmodules while merging release into no_solutions" || true
             else
               rm -f .gitmodules.bak
             fi
           fi
 
-          # Auto-resolve any submodule conflicts by accepting draft's version (stage the submodule paths)
+          # Auto-resolve any submodule conflicts by accepting release's version (stage the submodule paths)
           if git ls-files -u | grep -q .; then
-            echo "Resolving submodule merge conflicts by accepting draft's version..."
+            echo "Resolving submodule merge conflicts by accepting release's version..."
             git ls-files -u | cut -f2 | sort -u | while read -r path; do
               # Check if this path is a submodule
               if git config -f .gitmodules --get-regexp "submodule\..*\.path" | grep -q " $path$"; then
                 echo "Auto-resolving submodule conflict: $path"
-                # Stage the submodule path to accept the incoming (draft) version
+                # Stage the submodule path to accept the incoming (release) version
                 git add "$path" || true
               fi
             done
