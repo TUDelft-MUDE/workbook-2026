@@ -16,6 +16,7 @@ on:
     paths:
     - book/**
     - requirements.txt
+    - .gitmodules
   workflow_dispatch:
 
 # Inherit configuration variables in the environment, or assign default values.
