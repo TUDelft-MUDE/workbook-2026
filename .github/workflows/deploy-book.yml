@@ -9,7 +9,6 @@ on:
     - '**'
     - '!dependabot**'
     - '!no_solutions' # Exclude the no_solutions branch from triggering the workflow
-    - '!release' # Exclude the release branch from triggering the workflow
     # If your git repository has the Jupyter Book within some-subfolder next to
     # unrelated files, you can make this run only if a file within that specific
     # folder (or the workflow file itself) has been modified.
@@ -75,7 +74,7 @@ env:
 
 
 jobs:
-  merge-to-release:
+  update-submodules:
     if: ${{ github.ref == 'refs/heads/draft' }}
     runs-on: ubuntu-latest
     permissions:
@@ -93,11 +92,26 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Merge draft into release
+      - name: Update submodules for release
         run: |
+          # Fetch all branches and ensure we have the target branch
+          git fetch --all
+          # Checkout and reset to origin/release (assumed to exist)
           git checkout release
-          git merge draft --no-ff -m "Auto-merge draft into release"
-          git push origin release
+          git reset --hard origin/release
+
+          # Update all submodules to follow their configured branch (if set in .gitmodules)
+          git submodule update --init --recursive --remote || true
+          echo "Submodule updates complete"
+
+          # If there are changes (updated submodule SHAs), commit them
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Update submodules according to .gitmodules" || echo "Nothing to commit"
+            git push origin release || true
+          else
+            echo "No changes to submodules"
+          fi
 
       - name: Update submodules for no_solutions
         run: |
@@ -229,9 +243,9 @@ jobs:
           exit 1
         fi
 
-
   build-books:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     needs: get-branches
     if: ${{ needs.get-branches.outputs.branches != '[]' }}
     permissions:
@@ -390,9 +404,9 @@ jobs:
         if [ -s stderr.log ]; then
           {
             echo "On branch \\\`${{ matrix.branch }}\\\`:"
-            echo '\`\`\`'
+            echo '```'
             cat stderr.log
-            echo '\`\`\`'
+            echo '```'
           } >> summary.md
         fi
 
@@ -428,8 +442,7 @@ jobs:
     needs:
     - get-branches
     - build-books
-    outputs:
-      summary: ${{ steps.output-summary.outputs.summary }}
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -817,15 +830,11 @@ jobs:
       id: deployment
       uses: actions/deploy-pages@v4
 
-    # source: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
-    - name: Output summary
-      id: output-summary
-      run: |
-        {
-          echo 'summary<<EOF'
-          cat summary.md
-          echo EOF
-        } >> "$GITHUB_OUTPUT"
+    - name: Upload summary as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: _final-summary
+        path: summary.md
 
   summarize:
     if: always()
@@ -833,18 +842,24 @@ jobs:
       - get-branches
       - deploy-books
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
+    - name: Download final summary artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: _final-summary
+        path: ./
     - name: Summarize
       run: |
-
-        echo "${{ needs.deploy-books.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
-
-        if [ "${{ needs.deploy-books.outputs.summary }}" == "" ]; then
+        # Append the aggregated summary to Actions summary
+        if [ -f summary.md ]; then
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+        else
           {
             echo "An unknown error has occurred, cannot display summary. It may be there were too many errors or warnings in the book build process."
             echo
             echo "- You can try building the books locally, or inspecting the workflow run logs to troubleshoot the issue."
-          } >> $GITHUB_STEP_SUMMARY
+          } >> "$GITHUB_STEP_SUMMARY"
         fi
 
         isdefault() {
@@ -868,7 +883,6 @@ jobs:
           echo "BRANCHES_ARCHIVED=$BRANCHES_ARCHIVED $(isdefault ${{ vars.BRANCHES_ARCHIVED }})"
           echo '```'
         } >> $GITHUB_STEP_SUMMARY
-
 
 
 permissions:
