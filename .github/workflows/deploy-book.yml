@@ -75,7 +75,7 @@ env:
 
 jobs:
   update-submodules:
-    if: ${{ github.ref == 'refs/heads/draft' }}
+    if: ${{ github.ref == 'refs/heads/release' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -179,8 +179,8 @@ jobs:
       
 
   get-branches:
-    needs: merge-to-release
-    if: always() && (needs.merge-to-release.result == 'success' || needs.merge-to-release.result == 'skipped')
+    needs: update-submodules
+    if: always() && (needs.update-submodules.result == 'success' || needs.update-submodules.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       branches: ${{ steps.set-branches.outputs.branches }}
