@@ -249,13 +249,17 @@ parts:
     - file: assignments/WS2.5/README.md
       sections:
       - file: assignments/WS2.5/WS_2_5_profit_vs_planet.ipynb
-# START REMOVE-FROM-PUBLISH
     - file: assignments/GA2.5/README.md
       sections:
       - file: assignments/GA2.5/Analysis_GA.ipynb
       - file: assignments/GA2.5/Analysis_MILP.ipynb
       - file: assignments/GA2.5/report.md
-# END REMOVE-FROM-PUBLISH
+  - file: weeks/week2_6.md
+    sections:
+    - file: assignments/PA2.6/README.md
+      sections:
+      - file: assignments/PA2.6/split.ipynb
+      - file: assignments/PA2.6/split.md
 
 - caption: Miscellaneous
   chapters:
