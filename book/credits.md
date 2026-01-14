@@ -3,11 +3,11 @@
 
 You can refer to the most recent version of this book as:
 
-> Ding, J., van der Meer, F., van Woudenberg, T., Lanzafame, R. & Verhagen S. (Eds.) (n.d.), Modelling, Uncertainty and Data for Engineers (MUDE) workbook, Delft University of Technology. https://mude.citg.tudelft.nl/workbook-2025, CC BY 4.0.
+> Ding, J., van der Meer, F., van Woudenberg, T., Lanzafame, R. & Verhagen S. (Eds.) (n.d.), Modelling, Uncertainty and Data for Engineers (MUDE) workbook, Delft University of Technology. https://mude.citg.tudelft.nl/workbook-2026, CC BY 4.0.
 
 The structure of the book and formatting of contents is done under direction of the Editors, in collaboration with a large team of co-authors and student assistants. Some assignments and pages have additional primary authors who are identified on those pages as necessary. If an author is not listed on a particular chapter or page, the editors may be attributed as the authors. Furthermore, as contents of this book may change, we cannot guarantee that chapter titles and URL's will remain static indefinitely. Therefore, if it is important for you to reference a specific location within the book, we recommend including the complete URL and version in your reference:
 
-> `<Primary Authors>`, `<Title of Chapter or Page>`. In Ding et al. (n.d.), _Modelling, Uncertainty and Data for Engineers (MUDE) workbook._ Delft University of Technology. https://mude.citg.tudelft.nl/workbook-2025/<...>`, version `<version_number>`, CC BY 4.0.
+> `<Primary Authors>`, `<Title of Chapter or Page>`. In Ding et al. (n.d.), _Modelling, Uncertainty and Data for Engineers (MUDE) workbook._ Delft University of Technology. https://mude.citg.tudelft.nl/workbook-2026/<...>`, version `<version_number>`, CC BY 4.0.
 
 Please note that a DOI is created only for complete versions (i.e., this will be created in spring 2026, when the entire source code is also released). The assignments in their entirety are available for the previous year (2024), which was in the form of a github repository and FTP-like website. Refer to the 2024 version as follows:
 
@@ -19,7 +19,7 @@ This book is created using open source tools: it is a JupyterBook that is writte
 
 ### Acknowledgements
 
-In addition to the generous support of the faculty of Civil Engineering and Geosciences at Delft University of Technology (as also described on the [Credits page of the MUDE Textbook](https://mude.citg.tudelft.nl/book/2025/credits)), a tremendous thank you goes out to our MUDE students for their role in the constant refinement of MUDE materials. In particular: the first year students whose constant feedback helped influence the redesign of MUDE for year 2 (2023-24); as well as the many MUDE teaching assistants: for those in the first year (2022-23) who, like the MUDE teachers themselves had no idea what MUDE was (yet!); and the brave students from the first and second years who were motivated to help teachers make MUDE even better for the next generation of students. Finally, a special thank you goes to the colleagues who overcame fears and challenges associated with the "new" (to us) way of working with Jupyter ecosystem: your willingness to learn and adapt to improve your teaching is truly inspiring!
+In addition to the generous support of the faculty of Civil Engineering and Geosciences at Delft University of Technology (as also described on the [Credits page of the MUDE Textbook](https://mude.citg.tudelft.nl/book/2026/credits)), a tremendous thank you goes out to our MUDE students for their role in the constant refinement of MUDE materials. In particular: the first year students whose constant feedback helped influence the redesign of MUDE for year 2 (2023-24); as well as the many MUDE teaching assistants: for those in the first year (2022-23) who, like the MUDE teachers themselves had no idea what MUDE was (yet!); and the brave students from the first and second years who were motivated to help teachers make MUDE even better for the next generation of students. Finally, a special thank you goes to the colleagues who overcame fears and challenges associated with the "new" (to us) way of working with Jupyter ecosystem: your willingness to learn and adapt to improve your teaching is truly inspiring!
 
 Rok Stular developed the original web server and CI/CD pipeline concepts for the 2023-24 academic year. These were completely revised and set up for the 2024-25 academic year by Kwangjin Lee. In 2025-26, the infrastructure was further revised by Tom van Woudenberg.
 
