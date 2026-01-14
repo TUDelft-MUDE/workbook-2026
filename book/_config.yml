@@ -13,7 +13,7 @@ sphinx:
   config:
     html_theme_options:
       logo:
-        text: Workbook 2026
+        text: Workbook 2026 without solutions
         link: "https://mude.citg.tudelft.nl/"
         image_light: MUDE_Logo-small.png
         image_dark: MUDE_Logo-small.png
@@ -22,6 +22,8 @@ sphinx:
       repository_branch: "release"
       use_repository_button: true
       use_issues_button : true
+      announcement: "<p>This version of the workbook doesn't include solutions. The version with solution can be found here: <a href='https://mude.citg.tudelft.nl/workbook-2026' style='color: cyan;'>mude.citg.tudelft.nl/workbook-2026</a></p>"
+
     html_show_copyright: false
     html_last_updated_fmt: ''
     html_static_path: ["figures"] # add folders that contain files that need to be included, such as the location of the logo(s)
