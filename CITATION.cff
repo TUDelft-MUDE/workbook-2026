@@ -22,12 +22,12 @@ authors:
     family-names: van Woudenberg
 identifiers:
   - type: website
-    value: https://mude.citg.tudelft.nl/workbook-2025/
+    value: https://mude.citg.tudelft.nl/workbook-2026/
     description: Website showing preview of all files
-repository-code: 'https://github.com/TUDelft-MUDE/workbook-2025'
+repository-code: 'https://github.com/TUDelft-MUDE/workbook-2026'
 abstract: >-
   This repository primarily contains MUDE assignments from the
-  2025-2026 academic year. MUDE stands for Modelling, Uncertainty
+  2026-2027 academic year. MUDE stands for Modelling, Uncertainty
   and Data for Engineers, a required module in the MSc programs
   from the faculty of Civil Engineering and Geosciences at
   Delft University of Technology in the Netherlands.
