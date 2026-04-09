@@ -91,6 +91,18 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
+      - name: Create submodule org app token
+        id: submodule-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: MUDE-2026
+
+      - name: Configure submodule authentication
+        run: |
+          git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -266,12 +278,25 @@ jobs:
       with:
         app-id: ${{ secrets.APP_ID }}
         private-key: ${{ secrets.APP_PRIVATE_KEY }}
+    - name: Create submodule org app token
+      id: submodule-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.APP_ID }}
+        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        owner: MUDE-2026
     - uses: actions/checkout@v6
       with:
         ref: ${{ matrix.branch }}
         token: ${{ steps.app-token.outputs.token }}
-        submodules: 'true'
         fetch-depth: 0
+    - name: Configure submodule authentication
+      run: |
+        git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
+    - name: Update submodules
+      run: |
+        git submodule sync --recursive
+        git submodule update --init --recursive
 
     - name: Record extra cache info
       run: |
