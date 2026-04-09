@@ -1,0 +1,141 @@
+name: call-deploy-book
+
+on:
+  push:
+    branches:
+    - '**'
+    # If your git repository has the Jupyter Book within some-subfolder next to
+    # unrelated files, you can make this run only if a file within that specific
+    # folder (or the workflow file itself) has been modified.
+    #
+    paths:
+    - book/**
+    - requirements.txt
+    - .gitmodules
+  workflow_dispatch:
+
+jobs:
+  update-submodules:
+    if: ${{ github.ref == 'refs/heads/release' }}
+    name: Update submodules
+    runs-on: ubuntu-latest
+    outputs:
+      gh_pat: ${{ steps.app-token.outputs.token }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Update submodules for release
+        run: |
+          # Fetch all branches and ensure we have the target branch
+          git fetch --all
+          # Checkout and reset to origin/release (assumed to exist)
+          git checkout release
+          git reset --hard origin/release
+
+          # Update all submodules to follow their configured branch (if set in .gitmodules)
+          git submodule update --init --recursive --remote || true
+          echo "Submodule updates complete"
+
+          # If there are changes (updated submodule SHAs), commit them
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Update submodules according to .gitmodules [skip ci]" || echo "Nothing to commit"
+            git push origin release || true
+          else
+            echo "No changes to submodules"
+          fi
+
+      - name: Update submodules for no_solutions
+        run: |
+          # Fetch all branches and ensure we have the target branch
+          git fetch --all
+          # Checkout and reset to origin/no_solutions (assumed to exist)
+          git checkout no_solutions
+          git reset --hard origin/no_solutions
+
+          # Merge release into no_solutions but preserve .gitmodules to avoid conflicts
+          # Save current .gitmodules
+          if [ -f .gitmodules ]; then
+            cp .gitmodules .gitmodules.bak
+          fi
+          # Merge release
+          git fetch origin release
+          git merge --no-edit -m "Merge release into no_solutions [skip ci]" origin/release || true
+          # If merge changed .gitmodules, restore the backup
+          if [ -f .gitmodules.bak ]; then
+            if ! cmp -s .gitmodules .gitmodules.bak; then
+              echo ".gitmodules changed by merge; restoring previous version to avoid conflicts"
+              mv .gitmodules.bak .gitmodules
+              git add .gitmodules
+              git commit -m "Keep existing .gitmodules while merging release into no_solutions [skip ci]" || true
+            else
+              rm -f .gitmodules.bak
+            fi
+          fi
+
+          # Auto-resolve any submodule conflicts by accepting release's version (stage the submodule paths)
+          if git ls-files -u | grep -q .; then
+            echo "Resolving submodule merge conflicts by accepting release's version..."
+            git ls-files -u | cut -f2 | sort -u | while read -r path; do
+              # Check if this path is a submodule
+              if git config -f .gitmodules --get-regexp "submodule\..*\.path" | grep -q " $path$"; then
+                echo "Auto-resolving submodule conflict: $path"
+                # Stage the submodule path to accept the incoming (release) version
+                git add "$path" || true
+              fi
+            done
+          fi
+
+          # Fail fast if any non-submodule merge conflicts remain
+          if git ls-files -u | grep -q .; then
+            echo "::error ::Unexpected merge conflicts remain after resolving submodules and restoring .gitmodules"
+            git status --porcelain=v1 || true
+            exit 1
+          fi
+
+          # Update all submodules to follow their configured branch (if set in .gitmodules)
+          git submodule update --init --recursive --remote || true
+          echo "Submodule updates complete"
+
+          # If there are changes (updated submodule SHAs), commit them
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Update submodules according to .gitmodules [skip ci]" || echo "Nothing to commit"
+          else
+            echo "No changes to submodules"
+          fi
+
+          # Always push no_solutions so merge commits are published even if submodules didn't change
+          git push origin no_solutions || true
+      
+
+  call-workflow:
+    needs: update-submodules
+    if: always() && (needs.update-submodules.result == 'success' || needs.update-submodules.result == 'skipped')
+    uses: TeachBooks/deploy-book-workflow/.github/workflows/deploy-book.yml@v1
+    secrets:
+      GH_PAT: ${{ needs.update-submodules.outputs.gh_pat || github.token }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
