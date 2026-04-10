@@ -36,7 +36,15 @@ sphinx:
     named_colors_custom_colors: {'attributiongrey':[150,150,150]}
     git_author_exclude:
       - 'github-actions[bot]'
-    git_exclude_commits: []
+    git_exclude_commits:
+      - 1d370ea3a287f75e3af51d8d6e8e2b6362d9666a #start template assignment repo
+      - 102dd0ff308f54569731636358c87519466facf7
+      - e03239e5bfd76384a07ba11c6d606cc75ba44110
+      - 8379ce353b7e1dc4a4befff9b9164c105f78651d
+      - 0a21c3a7fad453a27c289e6be6df15bafd6e3c41
+      - 16918d92efc8df5561a9b1e0938892946417d671
+      - 5bc60d62aba39927a8df92877905e172b04531a3
+      - 9a598980d43f2640f9fb1280c3a2b0ae2c7f603b #end template assignment repo
   extra_extensions:
     - sphinx.ext.imgconverter
     - sphinx.ext.extlinks
