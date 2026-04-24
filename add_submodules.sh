@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Adds submodules for: GA1.1-1.8, GA2.1-2.8, PA1.1-1.8, PA2.1-2.8, WS1.1-1.8, WS2.1-2.8
-groups=(GA WS)
+groups=(PA GA WS)
 series=(1 2)
 
 failed=()
