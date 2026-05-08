@@ -7,6 +7,9 @@ parts:
   - file: weeks/week1.md #BUMP
     sections:
     - file: assignments/PA1.1/README.md
+      sections:
+      - file: assignments/PA1.1/01_access_assignment.md
+      - file: assignments/PA1.1/06_test.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
