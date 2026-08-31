@@ -12,7 +12,7 @@ parts:
       - file: assignments/PA1.1/02_enable_hidden_files.md
       - file: assignments/PA1.1/03_install_conda.md
       - file: assignments/PA1.1/04_install_VS_code.md
-      - file: assignments/PA1.1/05_install_mude_environment.md
+      - file: assignments/PA1.1/05_install_mude_environment.md #BUMP
       - file: assignments/PA1.1/06_test.ipynb
       - file: assignments/PA1.1/07_github_copilot.md
       - file: assignments/PA1.1/08_install_github_desktop.md
