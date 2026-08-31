@@ -6,7 +6,7 @@ parts:
   chapters:
   - file: weeks/week1.md #BUMP
     sections:
-    - file: assignments/PA1.1/README.md
+    - file: assignments/PA1.1/README.md #BUMP
       sections:
       - file: assignments/PA1.1/01_github_account.md
       - file: assignments/PA1.1/02_enable_hidden_files.md
