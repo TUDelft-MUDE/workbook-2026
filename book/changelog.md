@@ -4,7 +4,7 @@
 
 ## 2026-09-02: v2026.2.0.pre-release
 - Added workshop assignment week 1
-- Added solution programming assignment week 1
+- Added solutions programming assignment week 1
 
 ## 2026-08-31: v2026.1.0.pre-release
 Added programming assignment week 1
