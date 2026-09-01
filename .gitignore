@@ -132,6 +132,8 @@ dmypy.json
 # Jupyter Book
 _build/
 .teachbooks/
+book/_git/
+book/_toc_with_local_paths.yml
 
 # poetry files
 pyproject.toml
