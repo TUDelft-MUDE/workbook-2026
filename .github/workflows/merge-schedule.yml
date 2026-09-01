@@ -7,8 +7,8 @@ on:
       - edited
       - synchronize
   schedule:
-    # Every 40 minutes past the hour 
-    - cron: '40 * * * *'
+    # Every 30 minutes past the hour 
+    - cron: '30 * * * *'
 
 jobs:
   merge_schedule:
