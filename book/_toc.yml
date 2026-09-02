@@ -33,6 +33,7 @@ parts:
       sections:
       - file: assignments/GA1.1/assignment.md
       - file: assignments/GA1.1/bonus.md
+      - file: assignments/GA1.1/report.md
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
