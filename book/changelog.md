@@ -3,6 +3,10 @@
 [TeachBooks Versioning](https://teachbooks.io/manual/features/versioning.html) is used (a special type of semantic numbering for educational purposes) with generic format `v<academic_year>.<additions>.<errata>`, with an additional `.pre-release` added for incomplete books.
 
 ## 2026-09-04: v2026.4.0.pre-release
+- Added solution group assignment week 1
+- Added programming assignment week 2
+
+## 2026-09-04: v2026.4.0.pre-release
 Added group assignment week 1
 
 ## 2026-09-02: v2026.3.0.pre-release
