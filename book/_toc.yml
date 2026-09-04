@@ -29,6 +29,10 @@ parts:
         sections:
         - file: assignments/WS1.1/crossword.md
       - file: assignments/WS1.1/3_ice_classic.md
+    - file: assignments/GA1.1/README.md
+      sections:
+      - file: assignments/GA1.1/assignment.md
+      - file: assignments/GA1.1/bonus.md
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
