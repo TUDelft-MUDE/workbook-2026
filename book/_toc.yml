@@ -45,6 +45,7 @@ parts:
       - file: assignments/PA1.2/5_list_comprehension.ipynb
       - file: assignments/PA1.2/6_filling_matrix.ipynb
       - file: assignments/PA1.2/7_programming_fundamental_concepts.ipynb
+    - file: assignments/WS1.2/README.md
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
