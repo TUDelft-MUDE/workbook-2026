@@ -46,6 +46,9 @@ parts:
       - file: assignments/PA1.2/6_filling_matrix.ipynb
       - file: assignments/PA1.2/7_programming_fundamental_concepts.ipynb
     - file: assignments/WS1.2/README.md
+      sections:
+      - file: assignments/WS1.2/1-discharge-numerical-integration_updated.ipynb
+      - file: assignments/WS1.2/2-storage-ODE.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
