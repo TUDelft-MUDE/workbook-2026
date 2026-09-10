@@ -6,7 +6,7 @@
 - Added solutions group assignment week 2
 - Added programming assignment week 3
 
-## 2026-09-10: v2026.6.0.pre-release
+## 2026-09-11: v2026.7.0.pre-release
 Added group assignment week 2
 
 ## 2026-09-09: v2026.6.0.pre-release
