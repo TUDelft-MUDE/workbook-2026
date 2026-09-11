@@ -14,6 +14,8 @@ on:
     - .gitmodules
   workflow_dispatch:
 
+if: ${{  github.actor != 'github-actions[bot]' }}
+
 # Inherit configuration variables in the environment, or assign default values.
 # Configuration variables may be set as explained here:
 # https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository
@@ -70,7 +72,7 @@ env:
 
 jobs:
   update-submodules:
-    if: ${{ github.ref == 'refs/heads/release' }}
+    if: ${{ github.ref == 'refs/heads/release' || github.ref == 'refs/heads/no_solutions' }}
     name: Update submodules
     runs-on: ubuntu-latest
     timeout-minutes: 10
