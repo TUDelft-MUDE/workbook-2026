@@ -70,7 +70,7 @@ env:
 
 jobs:
   update-submodules:
-    if: ${{ github.ref == 'refs/heads/release' }}
+    if: ${{ github.ref == 'refs/heads/release'}}
     name: Update submodules
     runs-on: ubuntu-latest
     timeout-minutes: 10
