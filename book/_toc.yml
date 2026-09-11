@@ -51,7 +51,7 @@ parts:
       - file: assignments/WS1.2/2-storage-ODE.ipynb
     - file: assignments/GA1.2/README.md
       sections:
-      - file: assignments/GA1.2/1Ddynamics.ipynb
+      - file: assignments/GA1.2/1Ddynamics.ipynb #BUMP
       - file: assignments/GA1.2/report.md
   - file: weeks/week3.md
     sections:
