@@ -49,6 +49,9 @@ parts:
       sections:
       - file: assignments/WS1.2/1-discharge-numerical-integration_updated.ipynb
       - file: assignments/WS1.2/2-storage-ODE.ipynb
+    - file: assignments/GA1.2/README.md
+      sections:
+      - file: assignments/GA1.2/1Ddynamics.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
