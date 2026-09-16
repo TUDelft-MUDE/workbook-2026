@@ -64,7 +64,7 @@ parts:
     - file: assignments/WS1.3/README.md
       sections:
       - file: assignments/WS1.3/1-bending_beam.ipynb
-      - file: assignments/WS1.3/2-particle_tracking.ipynb
+      - file: assignments/WS1.3/2-particle_tracking.ipynb #BUMP
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
