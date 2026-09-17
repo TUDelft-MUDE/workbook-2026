@@ -68,6 +68,14 @@ parts:
     - file: assignments/GA1.3/README.md
       sections:
       - file: assignments/GA1.3/contaminant_degradation.ipynb
+      - file: assignments/GA1.3/report.md
+  - file: weeks/week4.md
+    sections:
+    - file: assignments/PA1.4/README.md
+      sections:
+      - file: assignments/PA1.4/1_data_cleaning.ipynb
+      - file: assignments/PA1.4/2_data_import.ipynb
+      - file: assignments/PA1.4/3_programming_fundamental_concepts.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
