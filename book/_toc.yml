@@ -65,7 +65,7 @@ parts:
       sections:
       - file: assignments/WS1.3/1-bending_beam.ipynb
       - file: assignments/WS1.3/2-particle_tracking.ipynb
-    - file: assignments/GA1.3/README.md
+    - file: assignments/GA1.3/README.md #BUMP
       sections:
       - file: assignments/GA1.3/contaminant_degradation.ipynb
 - caption: Miscellaneous
