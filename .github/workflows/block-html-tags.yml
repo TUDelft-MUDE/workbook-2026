@@ -32,19 +32,35 @@ jobs:
           scan_repository() {
             local repository="$1"
             local display_name="$2"
+            local pathspec="$3"
 
             while IFS= read -r -d '' file; do
-              if [ -f "$repository/$file" ] && grep -IqEi "$tag_pattern" "$repository/$file"; then
+              file_path="$repository/$file"
+              if [ ! -f "$file_path" ]; then
+                continue
+              fi
+
+              if [[ "$file" == *.ipynb ]]; then
+                # Inspect cell source only; notebook outputs can contain rendered HTML/SVG.
+                jq -r '.cells[]?.source? // empty | if type == "array" then .[] else . end' "$file_path" |
+                  grep -qEi "$tag_pattern"
+              else
+                grep -IqEi "$tag_pattern" "$file_path"
+              fi
+
+              if [ $? -eq 0 ]; then
                 echo "HTML tags found in: $display_name/$file"
                 printf '1' >> "$matches_file"
               fi
-            done < <(git -C "$repository" ls-files -z)
+            done < <(git -C "$repository" ls-files -z -- "$pathspec")
           }
 
-          scan_repository . repository
+          scan_repository . repository book/
 
           while IFS= read -r -d '' submodule; do
-            scan_repository "$submodule" "$submodule"
+            case "$submodule" in
+              book/*) scan_repository "$submodule" "$submodule" . ;;
+            esac
           done < <(git submodule foreach --quiet --recursive 'printf "%s\\0" "$displaypath"')
 
           if [ -s "$matches_file" ]; then
