@@ -1,0 +1,60 @@
+name: Check HTML Tags
+
+on:
+  pull_request:
+
+jobs:
+  check-html-tags:
+    name: Check for HTML tags
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Create submodule org app token
+        id: submodule-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: MUDE-2026
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Find HTML tags
+        run: |
+          tag_pattern='<\/?[[:alpha:]][^>]*>'
+          matches_file=$(mktemp)
+
+          scan_repository() {
+            local repository="$1"
+            local display_name="$2"
+
+            while IFS= read -r -d '' file; do
+              if [ -f "$repository/$file" ] && grep -IqE "$tag_pattern" "$repository/$file"; then
+                echo "HTML tags found in: $display_name/$file"
+                printf '1' >> "$matches_file"
+              fi
+            done < <(git -C "$repository" ls-files -z)
+          }
+
+          scan_repository . repository
+
+          while IFS= read -r -d '' submodule; do
+            scan_repository "$submodule" "$submodule"
+          done < <(git submodule foreach --quiet --recursive 'printf "%s\\0" "$displaypath"')
+
+          if [ -s "$matches_file" ]; then
+            echo "Error: HTML tags detected in the repository."
+            exit 1
+          else
+            echo "No HTML tags found."
+          fi
