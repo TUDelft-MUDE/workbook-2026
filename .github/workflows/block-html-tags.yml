@@ -1,0 +1,77 @@
+name: Check HTML Tags
+
+on:
+  pull_request:
+
+jobs:
+  check-html-tags:
+    name: Check for HTML tags
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create submodule org app token
+        id: submodule-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: MUDE-2026
+      - uses: actions/checkout@v6
+      - name: Configure submodule authentication
+        run: |
+          git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
+      - name: Initialize submodules
+        run: |
+          git submodule update --init --recursive
+
+      - name: Find HTML tags
+        run: |
+          tag_pattern='<\/?(p|div)([[:space:]/>])'
+          matches_file=$(mktemp)
+
+          scan_repository() {
+            local repository="$1"
+            local display_name="$2"
+            local pathspec="$3"
+
+            while IFS= read -r -d '' file; do
+              file_path="$repository/$file"
+              if [ ! -f "$file_path" ]; then
+                continue
+              fi
+
+              if [[ "$file" == *.ipynb ]]; then
+                # Inspect cell source only; notebook outputs can contain rendered HTML/SVG.
+                if jq -r '.cells[]?.source? // empty | if type == "array" then .[] else . end' "$file_path" |
+                  grep -qEi "$tag_pattern"; then
+                  found_html_tag=true
+                else
+                  found_html_tag=false
+                fi
+              elif grep -IqEi "$tag_pattern" "$file_path"; then
+                found_html_tag=true
+              else
+                found_html_tag=false
+              fi
+
+              if [ "$found_html_tag" = true ]; then
+                echo "HTML tags found in: $display_name/$file"
+                printf '1' >> "$matches_file"
+              fi
+            done < <(git -C "$repository" ls-files -z -- "$pathspec")
+          }
+
+          scan_repository . repository book/
+
+          while IFS= read -r -d '' submodule; do
+            case "$submodule" in
+              book/*) scan_repository "$submodule" "$submodule" . ;;
+            esac
+          done < <(git submodule foreach --quiet --recursive 'printf "%s\\0" "$displaypath"')
+
+          if [ -s "$matches_file" ]; then
+            echo "Error: HTML tags detected in the repository."
+            exit 1
+          else
+            echo "No HTML tags found."
+          fi

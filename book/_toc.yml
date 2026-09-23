@@ -48,7 +48,7 @@ parts:
     - file: assignments/WS1.2/README.md
       sections:
       - file: assignments/WS1.2/1-discharge-numerical-integration_updated.ipynb
-      - file: assignments/WS1.2/2-storage-ODE.ipynb
+      - file: assignments/WS1.2/2-storage-ODE.ipynb #BUMPBUMP
     - file: assignments/GA1.2/README.md
       sections:
       - file: assignments/GA1.2/1Ddynamics.ipynb
@@ -78,7 +78,7 @@ parts:
       - file: assignments/PA1.4/3_programming_fundamental_concepts.ipynb
     - file: assignments/WS1.4/README.md
       sections:
-      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb
+      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb #BUMP
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
