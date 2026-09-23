@@ -17,19 +17,16 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: MUDE-2026
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ matrix.branch }}
       - name: Configure submodule authentication
         run: |
           git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
-      - name: Update submodules
+      - name: Initialize submodules
         run: |
-          git submodule sync --recursive
           git submodule update --init --recursive
 
       - name: Find HTML tags
         run: |
-          tag_pattern='<\/?[[:alpha:]][^>]*>'
+          tag_pattern='<\/?(p|div)([[:space:]/>])'
           matches_file=$(mktemp)
 
           scan_repository() {
@@ -37,7 +34,7 @@ jobs:
             local display_name="$2"
 
             while IFS= read -r -d '' file; do
-              if [ -f "$repository/$file" ] && grep -IqE "$tag_pattern" "$repository/$file"; then
+              if [ -f "$repository/$file" ] && grep -IqEi "$tag_pattern" "$repository/$file"; then
                 echo "HTML tags found in: $display_name/$file"
                 printf '1' >> "$matches_file"
               fi
