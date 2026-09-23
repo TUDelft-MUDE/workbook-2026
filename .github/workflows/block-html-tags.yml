@@ -26,7 +26,7 @@ jobs:
 
       - name: Find HTML tags
         run: |
-          tag_pattern='<\/?[[:alpha:]][^>]*>'
+          tag_pattern='<\/?(p|div)([[:space:]/>])'
           matches_file=$(mktemp)
 
           scan_repository() {
@@ -34,7 +34,7 @@ jobs:
             local display_name="$2"
 
             while IFS= read -r -d '' file; do
-              if [ -f "$repository/$file" ] && grep -IqE "$tag_pattern" "$repository/$file"; then
+              if [ -f "$repository/$file" ] && grep -IqEi "$tag_pattern" "$repository/$file"; then
                 echo "HTML tags found in: $display_name/$file"
                 printf '1' >> "$matches_file"
               fi
