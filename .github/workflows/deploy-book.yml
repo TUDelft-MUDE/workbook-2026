@@ -196,7 +196,10 @@ jobs:
 
   get-branches:
     needs: update-submodules
-    if: always() && (needs.update-submodules.result == 'success' || needs.update-submodules.result == 'skipped')
+    if: >-
+      always() &&
+      (needs.update-submodules.result == 'success' || needs.update-submodules.result == 'skipped') &&
+      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -472,7 +475,9 @@ jobs:
 
   deploy-books:
     # Run after build-books, even if it failed
-    if: always()
+    if: >-
+      always() &&
+      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
     needs:
     - get-branches
     - build-books
@@ -867,7 +872,9 @@ jobs:
         path: summary.md
 
   summarize:
-    if: always()
+    if: >-
+      always() &&
+      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
     needs:
       - get-branches
       - deploy-books
