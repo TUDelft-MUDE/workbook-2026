@@ -17,14 +17,11 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: MUDE-2026
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ matrix.branch }}
       - name: Configure submodule authentication
         run: |
           git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
-      - name: Update submodules
+      - name: Initialize submodules
         run: |
-          git submodule sync --recursive
           git submodule update --init --recursive
 
       - name: Find HTML tags
