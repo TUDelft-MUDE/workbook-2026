@@ -79,6 +79,11 @@ parts:
     - file: assignments/WS1.4/README.md
       sections:
       - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb #BUMP
+  - file: weeks/week5.md
+    sections:
+    - file: assignments/PA1.5/README.md
+      sections:
+      - file: assignments/PA1.5/scipy_statcs_3d_plots.ipynb
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
