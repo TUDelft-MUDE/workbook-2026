@@ -148,7 +148,12 @@ jobs:
           fi
           # Merge release
           git fetch origin release
-          git merge --no-edit -m "Merge release into no_solutions [skip ci]" origin/release || true
+          if ! git merge --no-edit -m "Merge release into no_solutions [skip ci]" origin/release; then
+            if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+              echo "::error ::Failed to merge release into no_solutions"
+              exit 1
+            fi
+          fi
           # If merge changed .gitmodules, restore the backup. Before restoring, detect
           # submodules whose branch moved from "assignment" to "solution" on release
           # (i.e. the assignment was just released with its solution) and, for those,
@@ -160,7 +165,7 @@ jobs:
               for name in $(git config -f .gitmodules.bak --get-regexp '^submodule\..*\.path$' | awk '{print $1}' | sed -E 's/^submodule\.(.*)\.path$/\1/'); do
                 old_branch=$(git config -f .gitmodules.bak --get "submodule.${name}.branch" 2>/dev/null || true)
                 new_branch=$(git config -f .gitmodules --get "submodule.${name}.branch" 2>/dev/null || true)
-                if [ "$old_branch" = "assignment" ] && [ "$new_branch" = "solution" ]; then
+                if [[ "$name" =~ ^book/assignments/GA[0-9]+\.[0-9]+$ ]] && [ "$old_branch" = "assignment" ] && [ "$new_branch" = "solution" ]; then
                   promote_names="${promote_names}${name}"$'\n'
                 fi
               done
@@ -199,20 +204,26 @@ jobs:
             exit 1
           fi
 
+          # Refresh local branch overrides from the checked-out .gitmodules.
+          git config -f .gitmodules --get-regexp '^submodule\..*\.branch$' |
+          while read -r key branch; do
+            git config "$key" "$branch"
+          done
+
           # Update all submodules to follow their configured branch (if set in .gitmodules)
-          git submodule update --init --recursive --remote || true
+          git submodule update --init --recursive --remote
           echo "Submodule updates complete"
 
           # If there are changes (updated submodule SHAs), commit them
           if [ -n "$(git status --porcelain)" ]; then
             git add .
-            git commit -m "Update submodules according to .gitmodules [skip ci]" || echo "Nothing to commit"
+            git commit -m "Update submodules according to .gitmodules [skip ci]"
           else
             echo "No changes to submodules"
           fi
 
           # Always push no_solutions so merge commits are published even if submodules didn't change
-          git push origin no_solutions || true
+          git push origin no_solutions
       
 
   get-branches:
