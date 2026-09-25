@@ -149,11 +149,29 @@ jobs:
           # Merge release
           git fetch origin release
           git merge --no-edit -m "Merge release into no_solutions [skip ci]" origin/release || true
-          # If merge changed .gitmodules, restore the backup
+          # If merge changed .gitmodules, restore the backup. Before restoring, detect
+          # submodules whose branch moved from "assignment" to "solution" on release
+          # (i.e. the assignment was just released with its solution) and, for those,
+          # promote the no_solutions branch from "assignment" to "assignment_with_report".
           if [ -f .gitmodules.bak ]; then
             if ! cmp -s .gitmodules .gitmodules.bak; then
               echo ".gitmodules changed by merge; restoring previous version to avoid conflicts"
+              promote_names=""
+              for name in $(git config -f .gitmodules.bak --get-regexp '^submodule\..*\.path$' | awk '{print $1}' | sed -E 's/^submodule\.(.*)\.path$/\1/'); do
+                old_branch=$(git config -f .gitmodules.bak --get "submodule.${name}.branch" 2>/dev/null || true)
+                new_branch=$(git config -f .gitmodules --get "submodule.${name}.branch" 2>/dev/null || true)
+                if [ "$old_branch" = "assignment" ] && [ "$new_branch" = "solution" ]; then
+                  promote_names="${promote_names}${name}"$'\n'
+                fi
+              done
               mv .gitmodules.bak .gitmodules
+              if [ -n "$promote_names" ]; then
+                echo "$promote_names" | while IFS= read -r name; do
+                  [ -n "$name" ] || continue
+                  echo "Released on solution branch: ${name}; bumping no_solutions branch 'assignment' -> 'assignment_with_report'"
+                  git config -f .gitmodules "submodule.${name}.branch" "assignment_with_report"
+                done
+              fi
               git add .gitmodules
               git commit -m "Keep existing .gitmodules while merging release into no_solutions [skip ci]" || true
             else
