@@ -78,10 +78,16 @@ parts:
       - file: assignments/PA1.4/3_programming_fundamental_concepts.ipynb
     - file: assignments/WS1.4/README.md
       sections:
-      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb 
+      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb
     - file: assignments/GA1.4/README.md #BUMP
       sections:
       - file: assignments/GA1.4/GA_1.4.ipynb
+  - file: weeks/week5.md
+    sections:
+    - file: assignments/PA1.5/README.md
+      sections:
+      - file: assignments/PA1.5/scipy_statcs_3d_plots.ipynb
+
   
 - caption: Miscellaneous
   chapters:
