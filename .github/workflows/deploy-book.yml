@@ -204,7 +204,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' ||
       !contains(github.event.head_commit.message, '[skip deploy-book]')) &&
       (needs.update-submodules.result == 'success' || needs.update-submodules.result == 'skipped') &&
-      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
+      github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -273,7 +273,8 @@ jobs:
     if: >-
       needs.get-branches.outputs.branches != '[]' &&
       (github.event_name == 'workflow_dispatch' ||
-      !contains(github.event.head_commit.message, '[skip deploy-book]'))
+      !contains(github.event.head_commit.message, '[skip deploy-book]')) &&
+      github.ref == 'refs/heads/release'
     permissions:
       pages: write
       id-token: write
@@ -487,7 +488,7 @@ jobs:
       always() &&
       (github.event_name == 'workflow_dispatch' ||
       !contains(github.event.head_commit.message, '[skip deploy-book]')) &&
-      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
+      github.ref == 'refs/heads/release'
     needs:
     - get-branches
     - build-books
@@ -886,7 +887,7 @@ jobs:
       always() &&
       (github.event_name == 'workflow_dispatch' ||
       !contains(github.event.head_commit.message, '[skip deploy-book]')) &&
-      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/release')
+      github.ref == 'refs/heads/release'
     needs:
       - get-branches
       - deploy-books
