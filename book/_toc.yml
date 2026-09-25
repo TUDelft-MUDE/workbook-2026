@@ -78,7 +78,11 @@ parts:
       - file: assignments/PA1.4/3_programming_fundamental_concepts.ipynb
     - file: assignments/WS1.4/README.md
       sections:
-      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb #BUMP
+      - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb 
+    - file: assignments/GA1.4/README.md #BUMP
+      sections:
+      - file: assignments/GA1.4/GA_1.4.ipynb
+  
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
