@@ -82,7 +82,6 @@ parts:
     - file: assignments/GA1.4/README.md #BUMP
       sections:
       - file: assignments/GA1.4/GA_1.4.ipynb
-      - file: assignments/GA1.4/report.md
   
 - caption: Miscellaneous
   chapters:
