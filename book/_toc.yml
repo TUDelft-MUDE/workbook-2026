@@ -82,7 +82,7 @@ parts:
     - file: assignments/GA1.4/README.md #BUMP
       sections:
       - file: assignments/GA1.4/GA_1.4.ipynb
-      - file: assignments/GA1.3/report.md
+      - file: assignments/GA1.4/report.md
   - file: weeks/week5.md
     sections:
     - file: assignments/PA1.5/README.md
