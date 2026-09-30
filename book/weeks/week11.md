@@ -1,4 +1,4 @@
-# Week 2.1
+# Week 2.1 - Numerical Methods for PDEs and OOP
 
 ```{tableofcontents}
 ```

@@ -1,4 +1,4 @@
-# Week 1.1
+# Week 1.1 - Version Control with Git
 
 ```{tableofcontents}
 ```

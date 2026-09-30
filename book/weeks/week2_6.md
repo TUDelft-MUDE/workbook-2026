@@ -1,4 +1,4 @@
-# Week 2.6
+# Week 2.6 - Machine Learning
 
 ```{tableofcontents}
 ```

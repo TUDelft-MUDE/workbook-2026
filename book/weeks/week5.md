@@ -1,4 +1,4 @@
-# Week 1.5
+# Week 1.5 - Multivariate Distributions
 
 ```{tableofcontents}
 ```
