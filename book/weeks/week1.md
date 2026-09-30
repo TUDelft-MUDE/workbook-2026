@@ -1,5 +1,5 @@
 # Week 1.1 - Version Control with Git
 
 ```{tableofcontents}
-:maxdepth: 2
+:maxdepth: 3
 ```
