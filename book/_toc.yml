@@ -79,10 +79,10 @@ parts:
     - file: assignments/WS1.4/README.md
       sections:
       - file: assignments/WS1.4/WS1_4_Fit_happens.ipynb
-    - file: assignments/GA1.4/README.md #BUMP
+    - file: assignments/GA1.4/README.md
       sections:
       - file: assignments/GA1.4/GA_1.4.ipynb
-      - file: assignments/GA1.4/report.md #BUMP
+      - file: assignments/GA1.4/report.md 
   - file: weeks/week5.md
     sections:
     - file: assignments/PA1.5/README.md
@@ -91,6 +91,10 @@ parts:
     - file: assignments/WS1.5/README.md
       sections:
       - file: assignments/WS1.5/Bivariate_Gaussian_CPT_data.ipynb
+    - file: assignments/GA1.5/README.md 
+      sections:
+      - file: assignments/GA1.5/Gaussian_Soil.ipynb
+      - file: assignments/GA1.5/report.md #BUMP
   
 - caption: Miscellaneous
   chapters:
