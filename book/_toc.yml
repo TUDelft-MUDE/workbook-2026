@@ -94,6 +94,14 @@ parts:
     - file: assignments/GA1.5/README.md #BUMP
       sections:
       - file: assignments/GA1.5/Gaussian_Soil.ipynb
+  - file: weeks/week6.md
+    sections:
+    - file: assignments/PA1.6/README.md
+      sections:
+      - file: assignments/PA1.6/1_py_files.md
+      - file: assignments/PA1.6/2_activate_github_copilot.md
+      - file: assignments/PA1.6/3_LLMs_in_Practice.md
+      
 
 - caption: Miscellaneous
   chapters:
