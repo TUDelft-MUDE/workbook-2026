@@ -91,7 +91,10 @@ parts:
     - file: assignments/WS1.5/README.md
       sections:
       - file: assignments/WS1.5/Bivariate_Gaussian_CPT_data.ipynb
-  
+    - file: assignments/GA1.5/README.md #BUMP
+      sections:
+      - file: assignments/GA1.5/Gaussian_Soil.ipynb
+
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
