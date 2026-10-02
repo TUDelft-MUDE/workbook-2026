@@ -98,9 +98,9 @@ parts:
     sections:
     - file: assignments/PA1.6/README.md
       sections:
-      - file: assignments/PA1.5/1_py_files.md
-      - file: assignments/PA1.5/2_activate_github_copilot.md
-      - file: assignments/PA1.5/3_LLMs_in_Practice.md
+      - file: assignments/PA1.6/1_py_files.md
+      - file: assignments/PA1.6/2_activate_github_copilot.md
+      - file: assignments/PA1.6/3_LLMs_in_Practice.md
       
 
 - caption: Miscellaneous
