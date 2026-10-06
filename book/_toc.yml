@@ -94,6 +94,7 @@ parts:
     - file: assignments/GA1.5/README.md #BUMP
       sections:
       - file: assignments/GA1.5/Gaussian_Soil.ipynb
+      - file: assignments/GA1.5/report.md
   - file: weeks/week6.md
     sections:
     - file: assignments/PA1.6/README.md
