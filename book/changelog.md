@@ -4,6 +4,7 @@
 
 ## 2026-10-02: v2026.23.0.pre-release
 - Added solutions to programming assignment week 6
+- Added workshop assignment week 6
 
 ## 2026-10-02: v2026.22.0.pre-release
 - Added solutions to group assignment week 5
