@@ -100,9 +100,13 @@ parts:
     - file: assignments/PA1.6/README.md
       sections:
       - file: assignments/PA1.6/1_py_files.md
+        sections:
+        - file: convert_files/my_first_script.md
       - file: assignments/PA1.6/2_activate_github_copilot.md
       - file: assignments/PA1.6/3_LLMs_in_Practice.md
-      
+    - file: assignments/WS1.6/README.md
+      sections:
+      - file: assignments/WS1.6/pipe_dreams.ipynb
 
 - caption: Miscellaneous
   chapters:
