@@ -21,7 +21,7 @@
 [submodule "book/assignments/PA1.6"]
 	path = book/assignments/PA1.6
 	url = https://github.com/MUDE-2026/PA1.6.git
-	branch = solution
+	branch = assignment
 [submodule "book/assignments/PA1.7"]
 	path = book/assignments/PA1.7
 	url = https://github.com/MUDE-2026/PA1.7.git
