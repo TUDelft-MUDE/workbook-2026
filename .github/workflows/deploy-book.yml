@@ -436,7 +436,7 @@ jobs:
         set -o pipefail
         # https://stackoverflow.com/a/692407
         # Hide "Replacement link ... already exists" warnings from console, logs and summary
-        hide_warning='Replacement link .* already exists in output directory'
+        hide_warning='Replacement link .* already exists in output directory\|^Cloning into'
         teachbooks build $option_release book/ > >(grep --line-buffered -v "$hide_warning" | tee stdout.log) 2> >(grep --line-buffered -v "$hide_warning" | tee stderr.log >&2)
         set +o pipefail
 

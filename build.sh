@@ -14,5 +14,5 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 
 # Initialize Jupyter Book configuration for the book directory
-teachbooks build book 2>&1 | grep --line-buffered -v "Replacement link .* already exists in output directory"
+teachbooks build book 2>&1 | grep --line-buffered -v "Replacement link .* already exists in output directory\|^Cloning into"
 exit "${PIPESTATUS[0]}"
