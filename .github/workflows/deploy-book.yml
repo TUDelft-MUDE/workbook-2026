@@ -435,9 +435,9 @@ jobs:
         fi
         set -o pipefail
         # https://stackoverflow.com/a/692407
-        # Hide "Replacement link ... already exists" warnings from the console (logs stay complete)
+        # Hide "Replacement link ... already exists" warnings from console, logs and summary
         hide_warning='Replacement link .* already exists in output directory'
-        teachbooks build $option_release book/ > >(tee stdout.log | grep --line-buffered -v "$hide_warning") 2> >(tee stderr.log | grep --line-buffered -v "$hide_warning" >&2)
+        teachbooks build $option_release book/ > >(grep --line-buffered -v "$hide_warning" | tee stdout.log) 2> >(grep --line-buffered -v "$hide_warning" | tee stderr.log >&2)
         set +o pipefail
 
     - name: If failed, restore a book for this branch from cache
