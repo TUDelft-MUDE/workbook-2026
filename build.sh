@@ -4,12 +4,6 @@ conda deactivate 2>/dev/null || true
 # Clear conda environment variables
 unset CONDA_DEFAULT_ENV CONDA_PROMPT_MODIFIER 2>/dev/null || true
 
-# Pull the most recent content for all submodules as configured in .gitmodules
-git submodule update --init --remote --progress
-
-# Show the resulting commit checked out for every submodule
-git submodule status
-
 # Create a Python virtual environment
 python -m venv venv
 
@@ -20,4 +14,5 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 
 # Initialize Jupyter Book configuration for the book directory
-teachbooks build book
+teachbooks build book 2>&1 | grep --line-buffered -v "Replacement link .* already exists in output directory"
+exit "${PIPESTATUS[0]}"
