@@ -107,6 +107,9 @@ parts:
     - file: assignments/WS1.6/README.md
       sections:
       - file: assignments/WS1.6/pipe_dreams.ipynb
+    - file: assignments/GA1.6/README.md #BUMP
+      sections:
+      - file: assignments/GA1.6/icey_dicey.ipynb
 
 - caption: Miscellaneous
   chapters:
