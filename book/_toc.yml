@@ -122,6 +122,10 @@ parts:
     - file: assignments/WS1.7/README.md
       sections:
       - file: assignments/WS1.7/is_it_melting.ipynb #BUMP
+    - file: assignments/GA1.7/README.md 
+      sections:
+      - file: assignments/GA1.7/Im_blue_dabadidabada.ipynb
+      # - file: assignments/GA1.7/report.md
 
 - caption: Miscellaneous
   chapters:
