@@ -123,7 +123,7 @@ parts:
     - file: assignments/GA1.7/README.md 
       sections:
       - file: assignments/GA1.7/Im_blue_dabadidabada.ipynb
-      # - file: assignments/GA1.7/report.md
+      - file: assignments/GA1.7/report.md
 
 - caption: Miscellaneous
   chapters:
