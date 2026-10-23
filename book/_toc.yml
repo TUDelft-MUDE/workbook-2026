@@ -132,8 +132,8 @@ parts:
     - file: assignments/GA1.8/README.md
       sections:
       - file: assignments/GA1.8/fit_me_baby_one_more_time.ipynb
-    #  - file: assignments/GA1.8/report.md
-
+      - file: assignments/GA1.8/report.md
+      
 - caption: Miscellaneous
   chapters:
   - file: changelog.md
