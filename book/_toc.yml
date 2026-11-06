@@ -135,6 +135,12 @@ parts:
       sections:
       - file: assignments/GA1.8/fit_me_baby_one_more_time.ipynb
       - file: assignments/GA1.8/report.md
+  - file: weeks/week11.md
+    sections:
+    - file: assignments/PA2.1/README.md
+      sections:
+      - file: assignments/PA2.1/1_functional.ipynb
+      - file: assignments/PA2.1/2_oop.ipynb
       
 - caption: Miscellaneous
   chapters:
