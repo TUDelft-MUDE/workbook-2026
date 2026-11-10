@@ -141,6 +141,16 @@ parts:
       sections:
       - file: assignments/PA2.1/1_functional.ipynb
       - file: assignments/PA2.1/2_oop.ipynb
+  - file: weeks/week2_3.md
+    sections:
+    - file: assignments/PA.3/README.md
+      sections:
+      - file: assignments/PA.3/1_iter.ipynb
+      - file: assignments/PA.3/2_modulo.ipynb
+      - file: assignments/PA.3/3_stem_plots.ipynb
+      - file: assignments/PA.3/4_errors.ipynb
+        sections:
+        - file: convert_files/max_even_square.md
       
 - caption: Miscellaneous
   chapters:
