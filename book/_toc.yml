@@ -141,6 +141,11 @@ parts:
       sections:
       - file: assignments/PA2.1/1_functional.ipynb
       - file: assignments/PA2.1/2_oop.ipynb
+  - file: weeks/week2_2.md
+    sections:
+    - file: assignments/PA2.2/README.md
+      sections:
+      - file: assignments/PA2.1/PA_2_2_sparse_v_dense.ipynb
       
 - caption: Miscellaneous
   chapters:
