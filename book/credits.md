@@ -25,7 +25,7 @@ Rok Stular developed the original web server and CI/CD pipeline concepts for the
 
 Tom van Woudenberg gets a special mention for his thorough review of every file in all of the weeks he was involved in MUDE as a teacher, which was most of them (far above average). Robert Lanzafame was responsible for implementing many of the changes in year 2 that gave MUDE its unique (albeit complicated) character: for example, a consistent notebook structure, assignment types and use of open source websites. Sandra Verhagen is a hero for leading the MUDE Team as Module Manager of year 1: keeping over 50 colleagues on track to deliver a brand new module based on Jupyter notebooks and Python when very few of us had any experience with it, during a year where the entire curriculum was new, all while keeping students satisfied and producing overall positive results---miraculous.
 
-As it is impossible to indicate the contributions of all MUDE TA's individually, they are listed [here](https://mude.citg.tudelft.nl/teacher/topics_people.html)
+As it is impossible to indicate the contributions of all MUDE TA's individually, they are listed [here](https://mude.citg.tudelft.nl/teacher/team/topics_people.html)
 
 ## License
 
