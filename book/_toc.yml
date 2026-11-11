@@ -141,7 +141,7 @@ parts:
       - file: assignments/PA2.1/2_oop.ipynb
     - file: assignments/WS2.1/README.md
       sections:
-      - file: assignments/W2.1/ws09.ipynb #BUMP
+      - file: assignments/WS2.1/ws09.ipynb #BUMP
 
 - caption: Miscellaneous
   chapters:
