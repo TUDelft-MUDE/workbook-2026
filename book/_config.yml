@@ -42,6 +42,7 @@ sphinx:
     - sphinx_tudelft_theme
   local_extensions:
     html_linkcheck: _ext/
+    changelog_notifications: _ext/
 
 teachbooks:
   attribution_color: attributiongrey

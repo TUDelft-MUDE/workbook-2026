@@ -18,6 +18,10 @@ As the workbook consists of source code and a rendered website (HTML), versionin
 
 [TeachBooks Versioning](https://teachbooks.io/manual/features/versioning.html) is used (a special type of semantic numbering for educational purposes) with generic format `v<academic_year>.<additions>.<errata>`, with an additional `.pre-release` added for incomplete books.
 
+Readers can enable changelog notifications using the button on workbook pages and granting browser permission. The book checks for updates every five minutes while a page is open, including when it is first opened; it cannot send notifications when all workbook pages are closed. The preference is stored in the browser and can be disabled using the same button. Browser or operating system settings may also block notifications.
+
+The local `changelog_notifications` Sphinx extension generates a fingerprint of `book/changelog.md` for each HTML build. To use another document, set `changelog_notifications_docname` in the Sphinx configuration to its document name (without the file extension). Notifications reflect changes in the deployed book, not unpublished source changes.
+
 Source code is versioned using Git and stored on GitHub in repository [TUDelft-MUDE/workbook-2026](https://github.com/TUDelft-MUDE/workbook-2026). Zenodo is used to archive the source code when the repository is complete. The metadata for this Zenodo record comes from the file `CITATION.cff`; besides updating the list of editors and the appropriate DOI for the Zenodo book record, no metadata should be changed in this file (use the README, Credits page and/or Zenodo book record instead).
 A PDF of the book will eventually be generated and uploaded to the TU Delft Repository (PURE). The PDF is intended only for archival purposes in PURE and is not intended to be read.
 
