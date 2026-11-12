@@ -107,9 +107,11 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertIn('class="btn btn-sm" disabled', right_header)
                 self.assertIn('data-bs-toggle="tooltip"', right_header)
                 self.assertIn('class="dropdown-item-text" role="status"', right_header)
-                self.assertIn('class="dropdown-menu changelog-notifications-intro" hidden', right_header)
-                self.assertIn('data-changelog-enable>Enable notifications', right_header)
-                self.assertIn('data-changelog-dismiss>Not now', right_header)
+                self.assertIn('class="btn btn-sm dropdown-item changelog-notifications-toggle"', right_header)
+                self.assertIn('class="btn__icon-container" data-changelog-toggle-icon', right_header)
+                self.assertIn('data-changelog-toggle-label>Enable notifications', right_header)
+                self.assertIn('class="btn__text-container" data-changelog-toggle-label', right_header)
+                self.assertIn('data-changelog-dismiss', right_header)
                 self.assertEqual(html.count('class="dropdown changelog-notifications"'), 1)
 
                 (source / "index.rst").write_text(

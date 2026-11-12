@@ -42,18 +42,27 @@ function createPage(options = {}) {
   const button = element();
   const menu = element();
   const status = element();
+  const statusContainer = element();
   const statusClose = element();
   const intro = element();
-  const introEnable = element();
+  const toggleButton = element();
+  const toggleIcon = element();
+  const toggleLabel = element();
   const introDismiss = element();
   button.disabled = true;
-  status.parentElement = menu;
+  menu.hidden = true;
+  statusContainer.hidden = true;
+  intro.hidden = true;
   panel.querySelector = (selector) => {
     if (selector === "button") return button;
+    if (selector === ".changelog-notifications-menu") return menu;
     if (selector === '[role="status"]') return status;
+    if (selector === ".changelog-notifications-status") return statusContainer;
     if (selector === "[data-changelog-status-close]") return statusClose;
     if (selector === ".changelog-notifications-intro") return intro;
-    if (selector === "[data-changelog-enable]") return introEnable;
+    if (selector === "[data-changelog-toggle]") return toggleButton;
+    if (selector === "[data-changelog-toggle-icon]") return toggleIcon;
+    if (selector === "[data-changelog-toggle-label]") return toggleLabel;
     if (selector === "[data-changelog-dismiss]") return introDismiss;
     throw new Error(`Unexpected selector: ${selector}`);
   };
@@ -108,11 +117,13 @@ function createPage(options = {}) {
   return {
     panel,
     button,
+    toggleButton,
+    toggleIcon,
+    toggleLabel,
     status,
     statusClose,
     menu,
     intro,
-    introEnable,
     introDismiss,
     notifications,
     values,
@@ -127,22 +138,29 @@ function createPage(options = {}) {
 test("top-bar button switches between opt-in and opt-out", async () => {
   const page = createPage();
   assert.equal(page.button.disabled, false);
-  assert.equal(page.button.attributes["aria-label"], "Enable changelog notifications");
-  assert.equal(page.button.attributes["aria-pressed"], "false");
+  assert.equal(page.button.attributes["aria-label"], "Changelog notification settings");
+  assert.equal(page.toggleButton.attributes["aria-pressed"], "false");
+  assert.equal(page.toggleLabel.textContent, "Enable notifications");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell-slash");
-  await page.button.listeners.click();
+  assert.equal(page.menu.hidden, false);
+  page.button.listeners.click();
+  assert.equal(page.menu.hidden, true);
+  page.button.listeners.click();
+  assert.equal(page.menu.hidden, false);
+  await page.toggleButton.listeners.click();
   assert.equal(page.fetchCount, 1);
-  assert.equal(page.button.attributes["aria-label"], "Disable changelog notifications");
-  assert.equal(page.button.attributes["aria-pressed"], "true");
+  assert.equal(page.toggleLabel.textContent, "Disable notifications");
+  assert.equal(page.toggleButton.attributes["aria-pressed"], "true");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell");
-  await page.button.listeners.click();
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
+  await page.toggleButton.listeners.click();
   assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
-  assert.equal(page.button.attributes["aria-label"], "Enable changelog notifications");
+  assert.equal(page.toggleLabel.textContent, "Enable notifications");
 });
 
 test("notifies once per tab session; later pages silently refresh the stored commit", async () => {
   const first = createPage();
-  await first.button.listeners.click();
+  await first.toggleButton.listeners.click();
   const updated = { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" };
   const nextPage = createPage({
     values: first.values, sessionValues: first.sessionValues, permission: "granted", manifest: updated,
@@ -171,7 +189,7 @@ test("notifies once per tab session; later pages silently refresh the stored com
 
 test("tabs share the last notified fingerprint", async () => {
   const first = createPage();
-  await first.button.listeners.click();
+  await first.toggleButton.listeners.click();
   const options = {
     values: first.values, permission: "granted",
     manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
@@ -184,19 +202,19 @@ test("tabs share the last notified fingerprint", async () => {
 
 test("denied permission and failed checks do not enable or lose updates", async () => {
   const denied = createPage({ requestResult: "denied" });
-  await denied.button.listeners.click();
+  await denied.toggleButton.listeners.click();
   assert.equal(denied.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.match(denied.status.textContent, /Allow them for this site in your browser's site settings/);
   assert.match(denied.status.textContent, /icon next to the address bar/);
   assert.equal(denied.menu.classList.contains("show"), true);
 
   const offline = createPage({ fetchError: true });
-  await offline.button.listeners.click();
+  await offline.toggleButton.listeners.click();
   assert.equal(offline.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.match(offline.status.textContent, /try again/);
 
   const enabled = createPage();
-  await enabled.button.listeners.click();
+  await enabled.toggleButton.listeners.click();
   const options = {
     values: enabled.values, permission: "granted",
     manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
@@ -211,7 +229,7 @@ test("denied permission and failed checks do not enable or lose updates", async 
 
 test("a dismissed permission request explains how to retry or find site settings", async () => {
   const page = createPage({ requestResult: "default" });
-  await page.introEnable.listeners.click();
+  await page.toggleButton.listeners.click();
   assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.equal(page.fetchCount, 0);
   assert.match(page.status.textContent, /Try the bell again/);
@@ -232,7 +250,8 @@ test("blocked guidance appears only on the first page of a tab session and can b
     values: first.values, sessionValues: first.sessionValues, permission: "denied", requestResult: "denied",
   });
   assert.equal(later.menu.classList.contains("show"), false);
-  await later.button.listeners.click();
+  later.button.listeners.click();
+  await later.toggleButton.listeners.click();
   assert.match(later.status.textContent, /Notifications are blocked/);
   assert.equal(later.statusClose.hidden, false);
   assert.equal(later.menu.classList.contains("show"), true);
@@ -249,17 +268,17 @@ test("blocked guidance is not shown automatically after the first page if permis
   assert.equal(later.menu.classList.contains("show"), false);
 });
 
-test("updates the theme tooltip when the button state changes", async () => {
+test("the bell opens the menu and the menu item label changes with notification state", async () => {
   const page = createPage();
-  let tooltipText = "";
-  page.window.bootstrap = {
-    Tooltip: { getInstance: () => ({ setContent: (content) => { tooltipText = content[".tooltip-inner"]; } }) },
-  };
-  await page.button.listeners.click();
-  assert.equal(tooltipText, "Disable changelog notifications");
-  assert.equal(page.button.attributes["data-bs-original-title"], tooltipText);
-  await page.button.listeners.click();
-  assert.equal(tooltipText, "Enable changelog notifications");
+  assert.equal(page.menu.hidden, false);
+  page.button.listeners.click();
+  assert.equal(page.menu.hidden, true);
+  page.button.listeners.click();
+  assert.equal(page.menu.hidden, false);
+  assert.equal(page.toggleLabel.textContent, "Enable notifications");
+  await page.toggleButton.listeners.click();
+  assert.equal(page.toggleLabel.textContent, "Disable notifications");
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
 });
 
 test("migrates a legacy content fingerprint without a false notification", async () => {
@@ -280,18 +299,19 @@ test("migrates a legacy content fingerprint without a false notification", async
 });
 
 test("rejects malformed commit fingerprints", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
   const page = createPage({ manifest: {
     fingerprint: "a".repeat(41), scheme: "git-commit", url: "changelog.html",
-  } });
-  await page.button.listeners.click();
-  assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
-  assert.match(page.status.textContent, /try again/);
+  }, values: new Map([[key, JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" })]]), permission: "granted" });
+  await finishCheck();
+  assert.equal(page.values.get(key), JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" }));
+  assert.match(page.status.textContent, /retry/);
 });
 
 test("first-visit prompt can be dismissed without requesting permission", () => {
   const page = createPage();
   assert.equal(page.intro.hidden, false);
-  assert.equal(page.intro.classList.contains("show"), true);
+  assert.equal(page.menu.hidden, false);
   assert.equal(page.permissionRequests, 0);
   page.introDismiss.listeners.click();
   assert.equal(page.intro.hidden, true);
@@ -303,13 +323,13 @@ test("first-visit prompt can be dismissed without requesting permission", () => 
 
 test("enabling from the prompt requests permission and hides it on later visits", async () => {
   const page = createPage();
-  await page.introEnable.listeners.click();
+  await page.toggleButton.listeners.click();
   assert.equal(page.permissionRequests, 1);
   assert.equal(page.intro.hidden, true);
-  assert.equal(page.button.attributes["aria-pressed"], "true");
+  assert.equal(page.toggleButton.attributes["aria-pressed"], "true");
   const later = createPage({ values: page.values, permission: "granted" });
   assert.equal(later.intro.hidden, true);
-  await later.button.listeners.click();
+  await later.toggleButton.listeners.click();
   assert.equal(later.intro.hidden, true);
 });
 

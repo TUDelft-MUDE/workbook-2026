@@ -16,8 +16,14 @@
   white-space: normal;
 }
 
+.changelog-notifications-status {
+  position: relative;
+}
+
 .changelog-notifications-status .dropdown-item-text {
+  display: block;
   padding-right: 3rem;
+  white-space: normal;
 }
 
 .changelog-notifications-status-close {
@@ -38,38 +44,35 @@
   color: var(--pst-color-text-base);
 }
 
-.changelog-notifications-actions {
+.changelog-notifications-menu .dropdown-item {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0 1rem 0.5rem;
+  align-items: center;
+  width: 100%;
+  color: inherit;
+  text-align: left;
 }
 
-.changelog-notifications-actions button {
-  padding: 0.35rem 0.65rem;
-  border: 1px solid var(--pst-color-text-base);
-  border-radius: 0.25rem;
-  background: var(--pst-color-background);
-  color: var(--pst-color-text-base);
-  font: inherit;
-  cursor: pointer;
+.changelog-notifications-menu .dropdown-item:disabled {
+  opacity: 0.65;
 }
 
-.changelog-notifications-actions [data-changelog-enable] {
-  border-color: var(--pst-color-primary);
-  background: var(--pst-color-primary);
-  color: var(--pst-color-primary-text);
+.changelog-notifications-intro .dropdown-item {
+  margin-bottom: 0.25rem;
 }
 
-.changelog-notifications-actions button:hover {
-  box-shadow: inset 0 0 0 100px #0002;
+.changelog-notifications-menu .btn__icon-container {
+  width: 1.5rem;
+  text-align: center;
 }
 
-.changelog-notifications-actions button:focus-visible {
+.changelog-notifications-menu .dropdown-item:focus-visible,
+.changelog-notifications-status-close:focus-visible {
   outline: 2px solid var(--pst-color-primary);
   outline-offset: 2px;
 }
 
-.changelog-notifications .dropdown-menu[hidden] {
+.changelog-notifications .dropdown-menu[hidden],
+.changelog-notifications-status[hidden],
+.changelog-notifications-intro[hidden] {
   display: none;
 }

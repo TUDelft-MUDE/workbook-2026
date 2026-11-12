@@ -15,20 +15,30 @@
     return;
   }
   const button = panel.querySelector("button");
+  const menu = panel.querySelector(".changelog-notifications-menu");
   const status = panel.querySelector('[role="status"]');
+  const statusContainer = panel.querySelector(".changelog-notifications-status");
   const statusClose = panel.querySelector("[data-changelog-status-close]");
   const intro = panel.querySelector(".changelog-notifications-intro");
-  const introEnable = panel.querySelector("[data-changelog-enable]");
+  const toggleButton = panel.querySelector("[data-changelog-toggle]");
+  const toggleIcon = panel.querySelector("[data-changelog-toggle-icon]");
+  const toggleLabel = panel.querySelector("[data-changelog-toggle-label]");
   const introDismiss = panel.querySelector("[data-changelog-dismiss]");
+
+  function showMenu(show) {
+    menu.hidden = !show;
+    menu.classList.toggle("show", show);
+    button.setAttribute("aria-expanded", show ? "true" : "false");
+  }
 
   function showIntro(show) {
     intro.hidden = !show;
-    intro.classList.toggle("show", show);
   }
 
   function dismissIntro() {
     localStorage.setItem(introKey, "1");
     showIntro(false);
+    showMenu(false);
   }
 
   function setLabel(label) {
@@ -45,15 +55,15 @@
 
   function setStatus(message, dismissible = false) {
     status.textContent = message;
+    statusContainer.hidden = !message;
     statusClose.hidden = !message || !dismissible;
-    status.parentElement.classList.toggle("show", Boolean(message));
   }
 
-  function setIcon(enabled) {
+  function setIcon(target, enabled) {
     const icon = document.createElement("i");
     icon.setAttribute("aria-hidden", "true");
     icon.className = enabled ? "fa-solid fa-bell" : "fa-solid fa-bell-slash";
-    button.replaceChildren(icon);
+    target.replaceChildren(icon);
   }
 
   function readState() {
@@ -71,8 +81,9 @@
       showIntro(false);
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
-      setIcon(false);
+      setIcon(button, false);
       setStatus("Notifications require a secure connection and a supported browser.");
+      showMenu(true);
       return;
     }
     try {
@@ -81,21 +92,31 @@
         sessionStorage.setItem(visitedKey, "1");
       }
       const state = readState();
-      showIntro(!state && !localStorage.getItem(introKey) && Notification.permission !== "denied");
+      const showPrompt = !state && !localStorage.getItem(introKey) && Notification.permission !== "denied";
+      showIntro(showPrompt);
       button.disabled = false;
-      setLabel(state ? "Disable changelog notifications" : "Enable changelog notifications");
-      button.setAttribute("aria-pressed", state ? "true" : "false");
-      setIcon(Boolean(state));
+      toggleButton.disabled = false;
+      setLabel("Changelog notification settings");
+      toggleLabel.textContent = state ? "Disable notifications" : "Enable notifications";
+      toggleButton.setAttribute("aria-pressed", state ? "true" : "false");
+      setIcon(button, Boolean(state));
+      setIcon(toggleIcon, Boolean(state));
       setStatus("");
       if (showBlocked && Notification.permission === "denied") {
         setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.", true);
       }
+      if (initial && (showPrompt || (showBlocked && Notification.permission === "denied"))) {
+        showMenu(true);
+      }
     } catch (error) {
       showIntro(false);
       button.disabled = true;
+      toggleButton.disabled = true;
       setLabel("Changelog notifications unavailable");
-      setIcon(false);
+      setIcon(button, false);
+      setIcon(toggleIcon, false);
       setStatus("Browser storage is unavailable.");
+      showMenu(true);
       console.error("Could not read changelog notification settings:", error);
     }
   }
@@ -137,22 +158,25 @@
     } catch (error) {
       if (alreadyChecked) return;
       setStatus("Could not check the changelog; navigating to another page will retry.");
+      showMenu(true);
       console.error("Could not check changelog notifications:", error);
     }
   }
 
   async function toggleNotifications() {
     try {
-      dismissIntro();
       if (readState()) {
         localStorage.removeItem(storageKey);
         render();
         return;
       }
-      button.disabled = true;
+      localStorage.setItem(introKey, "1");
+      showIntro(false);
+      toggleButton.disabled = true;
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         render({ showBlocked: true });
+        showMenu(true);
         if (permission !== "denied") {
           setStatus("Notification permission was not granted. Try the bell again. If no prompt appears, check your browser's site settings, usually via the icon next to the address bar.");
         }
@@ -164,19 +188,25 @@
         fingerprint: manifest.fingerprint, scheme: manifest.scheme,
       }));
       render();
+      showMenu(true);
     } catch (error) {
       render();
       setStatus("Could not enable notifications; please try again.");
+      showMenu(true);
       console.error("Could not enable changelog notifications:", error);
     }
   }
 
-  button.addEventListener("click", toggleNotifications);
+  button.addEventListener("click", () => {
+    showMenu(menu.hidden);
+  });
+  toggleButton.addEventListener("click", toggleNotifications);
   statusClose.addEventListener("click", () => {
     setStatus("");
+    if (!intro.hidden) return;
+    showMenu(false);
     button.focus();
   });
-  introEnable.addEventListener("click", toggleNotifications);
   introDismiss.addEventListener("click", () => {
     try {
       dismissIntro();

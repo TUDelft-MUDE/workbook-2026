@@ -1,25 +1,30 @@
 <div class="dropdown changelog-notifications">
   <button type="button" class="btn btn-sm" disabled
           title="Enable JavaScript to use changelog notifications"
-          aria-label="Enable JavaScript to use changelog notifications"
-          aria-pressed="false" data-bs-placement="bottom" data-bs-toggle="tooltip">
+          aria-label="Changelog notification settings" aria-expanded="false"
+          data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
   </button>
   <div>
-    <div class="dropdown-menu changelog-notifications-status">
-      <span class="dropdown-item-text" role="status"></span>
-      <button type="button" class="btn btn-sm changelog-notifications-status-close"
-              data-changelog-status-close aria-label="Close notification message" hidden>&times;</button>
-    </div>
-  </div>
-  <div>
-    <div class="dropdown-menu changelog-notifications-intro" hidden
+    <div class="dropdown-menu changelog-notifications-menu" hidden
          role="region" aria-label="Changelog notifications">
-      <p class="dropdown-item-text">Get notified about changelog updates when you open the workbook?</p>
-      <div class="changelog-notifications-actions">
-        <button type="button" data-changelog-enable>Enable notifications</button>
-        <button type="button" data-changelog-dismiss>Not now</button>
+      <div class="changelog-notifications-status" hidden>
+        <span class="dropdown-item-text" role="status"></span>
+        <button type="button" class="btn btn-sm changelog-notifications-status-close"
+                data-changelog-status-close aria-label="Close notification message">&times;</button>
       </div>
+      <div class="changelog-notifications-intro" hidden>
+        <p class="dropdown-item-text">Get notified about changelog updates when you open the workbook?</p>
+        <button type="button" class="btn btn-sm dropdown-item" data-changelog-dismiss>
+          <span class="btn__icon-container"><i class="fa-solid fa-xmark" aria-hidden="true"></i></span>
+          <span class="btn__text-container">Not now</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-sm dropdown-item changelog-notifications-toggle"
+              data-changelog-toggle aria-pressed="false">
+        <span class="btn__icon-container" data-changelog-toggle-icon><i class="fa-solid fa-bell-slash" aria-hidden="true"></i></span>
+        <span class="btn__text-container" data-changelog-toggle-label>Enable notifications</span>
+      </button>
     </div>
   </div>
 </div>
