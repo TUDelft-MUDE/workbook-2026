@@ -3,10 +3,32 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from html.parser import HTMLParser
 from pathlib import Path
 
 
 EXTENSIONS = Path(__file__).resolve().parents[1] / "book" / "_ext"
+
+
+class HeaderParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.stack = []
+        self.matches = {}
+
+    def handle_starttag(self, tag, attrs):
+        classes = set(dict(attrs).get("class", "").split())
+        for name in ("changelog-notifications", "btn-fullscreen-button", "search-button__button"):
+            if name in classes:
+                self.matches[name] = self.stack.copy()
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+            self.stack.append((tag, classes))
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index][0] == tag:
+                del self.stack[index:]
+                break
 
 
 class ChangelogNotificationsBuildTest(unittest.TestCase):
@@ -39,7 +61,7 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                     "extensions = ['changelog_notifications']\n"
                     "html_theme = 'sphinx_book_theme'\n"
                     "html_theme_options = {'article_header_end': "
-                    "['changelog-notifications.html', 'article-header-buttons.html']}\n"
+                    "['changelog-article-header-buttons.html']}\n"
                     "changelog_notifications_docname = 'updates'\n",
                     encoding="utf-8",
                 )
@@ -74,10 +96,14 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 )
                 self.assertNotIn('class="dropdown changelog-notifications"', left_header)
                 self.assertIn('class="dropdown changelog-notifications"', right_header)
-                self.assertLess(
-                    right_header.index('class="dropdown changelog-notifications"'),
-                    right_header.index('class="article-header-buttons"'),
-                )
+                parser = HeaderParser()
+                parser.feed(html)
+                self.assertEqual(len(parser.matches), 3)
+                for ancestors in parser.matches.values():
+                    self.assertTrue(any("article-header-buttons" in classes for _, classes in ancestors))
+                self.assertIn("article-header-buttons", parser.matches["changelog-notifications"][-1][1])
+                self.assertLess(right_header.index('class="dropdown changelog-notifications"'),
+                                right_header.index("btn-fullscreen-button"))
                 self.assertIn('class="btn btn-sm" disabled', right_header)
                 self.assertIn('data-bs-toggle="tooltip"', right_header)
                 self.assertIn('class="dropdown-item-text" role="status"', right_header)

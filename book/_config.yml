@@ -23,8 +23,7 @@ sphinx:
       use_repository_button: true
       use_issues_button : true
       article_header_end:
-        - changelog-notifications.html
-        - article-header-buttons.html
+        - changelog-article-header-buttons.html
     html_show_copyright: false
     html_last_updated_fmt: ''
     html_static_path: ["figures"] # add folders that contain files that need to be included, such as the location of the logo(s)
