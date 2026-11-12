@@ -1,11 +1,17 @@
+.header-article-items__end {
+  display: flex;
+  align-items: center;
+}
+
 .changelog-notifications {
-  position: relative;
+  position: static;
   display: inline-flex;
 }
 
 .changelog-notifications .dropdown-menu {
   top: 100%;
-  left: 0;
+  left: auto;
+  right: 1rem;
   transform: none;
   width: min(20rem, calc(100vw - 2rem));
 }

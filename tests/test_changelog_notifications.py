@@ -38,8 +38,8 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                     f"import sys\nsys.path.insert(0, {str(EXTENSIONS)!r})\n"
                     "extensions = ['changelog_notifications']\n"
                     "html_theme = 'sphinx_book_theme'\n"
-                    "html_theme_options = {'article_header_start': "
-                    "['toggle-primary-sidebar.html', 'changelog-notifications.html']}\n"
+                    "html_theme_options = {'article_header_end': "
+                    "['changelog-notifications.html', 'article-header-buttons.html']}\n"
                     "changelog_notifications_docname = 'updates'\n",
                     encoding="utf-8",
                 )
@@ -69,16 +69,21 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertTrue((output / "_static" / "changelog-notifications.css").is_file())
                 html = (output / "index.html").read_text(encoding="utf-8")
                 self.assertIn("changelog-notifications.js", html)
-                left_header = html.split('<div class="header-article-items__start">', 1)[1].split(
+                left_header, right_header = html.split('<div class="header-article-items__start">', 1)[1].split(
                     '<div class="header-article-items__end">', 1
-                )[0]
-                self.assertIn('class="dropdown changelog-notifications"', left_header)
-                self.assertIn('class="btn btn-sm" disabled', left_header)
-                self.assertIn('data-bs-toggle="tooltip"', left_header)
-                self.assertIn('class="dropdown-item-text" role="status"', left_header)
-                self.assertIn('class="dropdown-menu changelog-notifications-intro" hidden', left_header)
-                self.assertIn('data-changelog-enable>Enable notifications', left_header)
-                self.assertIn('data-changelog-dismiss>Not now', left_header)
+                )
+                self.assertNotIn('class="dropdown changelog-notifications"', left_header)
+                self.assertIn('class="dropdown changelog-notifications"', right_header)
+                self.assertLess(
+                    right_header.index('class="dropdown changelog-notifications"'),
+                    right_header.index('class="article-header-buttons"'),
+                )
+                self.assertIn('class="btn btn-sm" disabled', right_header)
+                self.assertIn('data-bs-toggle="tooltip"', right_header)
+                self.assertIn('class="dropdown-item-text" role="status"', right_header)
+                self.assertIn('class="dropdown-menu changelog-notifications-intro" hidden', right_header)
+                self.assertIn('data-changelog-enable>Enable notifications', right_header)
+                self.assertIn('data-changelog-dismiss>Not now', right_header)
                 self.assertEqual(html.count('class="dropdown changelog-notifications"'), 1)
 
                 (source / "index.rst").write_text(
