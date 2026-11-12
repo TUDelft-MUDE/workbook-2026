@@ -22,6 +22,9 @@ sphinx:
       repository_branch: "release"
       use_repository_button: true
       use_issues_button : true
+      article_header_start:
+        - toggle-primary-sidebar.html
+        - changelog-notifications.html
     html_show_copyright: false
     html_last_updated_fmt: ''
     html_static_path: ["figures"] # add folders that contain files that need to be included, such as the location of the logo(s)

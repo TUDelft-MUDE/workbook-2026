@@ -38,6 +38,8 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                     f"import sys\nsys.path.insert(0, {str(EXTENSIONS)!r})\n"
                     "extensions = ['changelog_notifications']\n"
                     "html_theme = 'sphinx_book_theme'\n"
+                    "html_theme_options = {'article_header_start': "
+                    "['toggle-primary-sidebar.html', 'changelog-notifications.html']}\n"
                     "changelog_notifications_docname = 'updates'\n",
                     encoding="utf-8",
                 )
@@ -65,8 +67,16 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertEqual(first["scheme"], "git-commit")
                 self.assertTrue((output / "_static" / "changelog-notifications.js").is_file())
                 self.assertTrue((output / "_static" / "changelog-notifications.css").is_file())
-                self.assertIn("changelog-notifications.js", (output / "index.html").read_text(encoding="utf-8"))
-                self.assertIn('class="article-header-buttons"', (output / "index.html").read_text(encoding="utf-8"))
+                html = (output / "index.html").read_text(encoding="utf-8")
+                self.assertIn("changelog-notifications.js", html)
+                left_header = html.split('<div class="header-article-items__start">', 1)[1].split(
+                    '<div class="header-article-items__end">', 1
+                )[0]
+                self.assertIn('class="dropdown changelog-notifications"', left_header)
+                self.assertIn('class="btn btn-sm" disabled', left_header)
+                self.assertIn('data-bs-toggle="tooltip"', left_header)
+                self.assertIn('class="dropdown-item-text" role="status"', left_header)
+                self.assertEqual(html.count('class="dropdown changelog-notifications"'), 1)
 
                 (source / "index.rst").write_text(
                     "Home\n====\n\nIntroduction.\n\n.. toctree::\n\n   updates\n",

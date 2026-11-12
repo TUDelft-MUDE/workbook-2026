@@ -3,16 +3,14 @@
   display: inline-flex;
 }
 
-.changelog-notifications span:not(:empty) {
-  position: absolute;
+.changelog-notifications .dropdown-menu {
   top: 100%;
-  right: 0;
-  z-index: 100;
+  left: 0;
+  transform: none;
   width: min(20rem, calc(100vw - 2rem));
-  padding: 0.5rem;
-  border: 1px solid var(--pst-color-border, #777);
-  border-radius: 0.4rem;
-  background: var(--pst-color-background, #fff);
-  color: var(--pst-color-text-base, #222);
-  font-size: 0.85rem;
+}
+
+.changelog-notifications .dropdown-item-text {
+  color: inherit;
+  white-space: normal;
 }

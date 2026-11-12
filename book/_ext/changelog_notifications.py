@@ -59,6 +59,9 @@ def write_changelog_fingerprint(app, exception):
 
 def setup(app):
     app.add_config_value("changelog_notifications_docname", "changelog", "html")
+    app.config.templates_path.append(
+        str(Path(__file__).parent / "changelog_notifications_templates")
+    )
     app.add_js_file("changelog-notifications.js", defer="defer")
     app.add_css_file("changelog-notifications.css")
     app.connect("builder-inited", add_static_path)

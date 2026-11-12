@@ -19,26 +19,40 @@ function createPage(options = {}) {
     fingerprint: fingerprint("a"), scheme: "git-commit", url: "changelog.html",
   };
   let fetchCount = 0;
-  const elements = [];
   function element() {
     const listeners = {};
     const attributes = {};
+    const classes = new Set();
     return {
       listeners,
       attributes,
-      append(...children) { this.children = children; },
+      classList: {
+        toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); },
+        contains(name) { return classes.has(name); },
+      },
       replaceChildren(...children) { this.children = children; },
       setAttribute(name, value) { attributes[name] = value; },
+      removeAttribute(name) { delete attributes[name]; },
       addEventListener(name, callback) { listeners[name] = callback; },
     };
   }
-  const toolbar = element();
+  const panel = element();
+  const button = element();
+  const menu = element();
+  const status = element();
+  button.disabled = true;
+  status.parentElement = menu;
+  panel.querySelector = (selector) => {
+    if (selector === "button") return button;
+    if (selector === '[role="status"]') return status;
+    throw new Error(`Unexpected selector: ${selector}`);
+  };
   const document = {
     currentScript: { src: "https://example.org/book/_static/changelog-notifications.js" },
-    createElement() { const result = element(); elements.push(result); return result; },
+    createElement() { return element(); },
     querySelector(selector) {
-      assert.equal(selector, ".article-header-buttons");
-      return toolbar;
+      assert.equal(selector, ".changelog-notifications");
+      return panel;
     },
   };
   function Notification(title, notificationOptions) {
@@ -77,10 +91,10 @@ function createPage(options = {}) {
     Notification, fetch, URL, console: { error() {} },
   });
   return {
-    panel: elements[0],
-    button: elements[1],
-    status: elements[2],
-    toolbar,
+    panel,
+    button,
+    status,
+    menu,
     notifications,
     values,
     sessionValues,
@@ -91,7 +105,7 @@ function createPage(options = {}) {
 
 test("top-bar button switches between opt-in and opt-out", async () => {
   const page = createPage();
-  assert.equal(page.toolbar.children[0], page.panel);
+  assert.equal(page.button.disabled, false);
   assert.equal(page.button.attributes["aria-label"], "Enable changelog notifications");
   assert.equal(page.button.attributes["aria-pressed"], "false");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell-slash");
@@ -147,6 +161,7 @@ test("denied permission and failed checks do not enable or lose updates", async 
   await denied.button.listeners.click();
   assert.equal(denied.values.size, 0);
   assert.match(denied.status.textContent, /blocked/);
+  assert.equal(denied.menu.classList.contains("show"), true);
 
   const offline = createPage({ fetchError: true });
   await offline.button.listeners.click();
@@ -165,6 +180,19 @@ test("denied permission and failed checks do not enable or lose updates", async 
   const retry = createPage({ ...options, sessionValues: failed.sessionValues });
   await finishCheck();
   assert.equal(retry.notifications.length, 1);
+});
+
+test("updates the theme tooltip when the button state changes", async () => {
+  const page = createPage();
+  let tooltipText = "";
+  page.window.bootstrap = {
+    Tooltip: { getInstance: () => ({ setContent: (content) => { tooltipText = content[".tooltip-inner"]; } }) },
+  };
+  await page.button.listeners.click();
+  assert.equal(tooltipText, "Disable changelog notifications");
+  assert.equal(page.button.attributes["data-bs-original-title"], tooltipText);
+  await page.button.listeners.click();
+  assert.equal(tooltipText, "Enable changelog notifications");
 });
 
 test("migrates a legacy content fingerprint without a false notification", async () => {

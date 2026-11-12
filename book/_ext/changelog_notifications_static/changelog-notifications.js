@@ -7,24 +7,29 @@
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
 
-  const toolbar = document.querySelector(".article-header-buttons");
-  if (!toolbar) {
-    console.error("Could not find the workbook's article header buttons.");
+  const panel = document.querySelector(".changelog-notifications");
+  if (!panel) {
+    console.error("Could not find the changelog notification button.");
     return;
   }
-  const panel = document.createElement("div");
-  panel.className = "changelog-notifications";
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "btn btn-sm";
-  const status = document.createElement("span");
-  status.setAttribute("role", "status");
-  panel.append(button, status);
-  toolbar.append(panel);
+  const button = panel.querySelector("button");
+  const status = panel.querySelector('[role="status"]');
 
   function setLabel(label) {
-    button.title = label;
     button.setAttribute("aria-label", label);
+    const tooltip = window.bootstrap?.Tooltip?.getInstance(button);
+    if (tooltip) {
+      button.setAttribute("data-bs-original-title", label);
+      button.removeAttribute("title");
+      tooltip.setContent({ ".tooltip-inner": label });
+    } else {
+      button.title = label;
+    }
+  }
+
+  function setStatus(message) {
+    status.textContent = message;
+    status.parentElement.classList.toggle("show", Boolean(message));
   }
 
   function setIcon(enabled) {
@@ -49,7 +54,7 @@
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(false);
-      status.textContent = "Notifications require a secure connection and a supported browser.";
+      setStatus("Notifications require a secure connection and a supported browser.");
       return;
     }
     try {
@@ -58,15 +63,15 @@
       setLabel(state ? "Disable changelog notifications" : "Enable changelog notifications");
       button.setAttribute("aria-pressed", state ? "true" : "false");
       setIcon(Boolean(state));
-      status.textContent = "";
+      setStatus("");
       if (Notification.permission === "denied") {
-        status.textContent = "Notifications are blocked in your browser's site settings.";
+        setStatus("Notifications are blocked in your browser's site settings.");
       }
     } catch (error) {
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(false);
-      status.textContent = "Browser storage is unavailable.";
+      setStatus("Browser storage is unavailable.");
       console.error("Could not read changelog notification settings:", error);
     }
   }
@@ -103,7 +108,7 @@
       sessionStorage.setItem(sessionKey, "1");
       render();
     } catch (error) {
-      status.textContent = "Could not check the changelog; navigating to another page will retry.";
+      setStatus("Could not check the changelog; navigating to another page will retry.");
       console.error("Could not check changelog notifications:", error);
     }
   }
@@ -119,7 +124,7 @@
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         render();
-        if (permission !== "denied") status.textContent = "Notification permission was not granted.";
+        if (permission !== "denied") setStatus("Notification permission was not granted.");
         return;
       }
       const manifest = await getManifest();
@@ -130,7 +135,7 @@
       render();
     } catch (error) {
       render();
-      status.textContent = "Could not enable notifications; please try again.";
+      setStatus("Could not enable notifications; please try again.");
       console.error("Could not enable changelog notifications:", error);
     }
   });
