@@ -37,6 +37,7 @@
 
   function showIntro(show) {
     intro.hidden = !show;
+    menu.classList.toggle("has-message", !intro.hidden || !statusContainer.hidden);
   }
 
   function dismissIntro() {
@@ -53,6 +54,7 @@
     status.textContent = message;
     statusContainer.hidden = !message;
     statusClose.hidden = !message || !dismissible;
+    menu.classList.toggle("has-message", !intro.hidden || !statusContainer.hidden);
   }
 
   function setIcon(target, enabled) {
