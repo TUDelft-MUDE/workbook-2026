@@ -18,7 +18,7 @@ As the workbook consists of source code and a rendered website (HTML), versionin
 
 [TeachBooks Versioning](https://teachbooks.io/manual/features/versioning.html) is used (a special type of semantic numbering for educational purposes) with generic format `v<academic_year>.<additions>.<errata>`, with an additional `.pre-release` added for incomplete books.
 
-Readers can enable changelog notifications using the button on workbook pages and granting browser permission. The book checks for updates every five minutes while a page is open, including when it is first opened; it cannot send notifications when all workbook pages are closed. The preference is stored in the browser and can be disabled using the same button. Browser or operating system settings may also block notifications.
+Readers can enable changelog notifications using the bell button in the workbook's top bar and granting browser permission. The button then changes to disable notifications. The book checks for updates once when opened in a new browser tab session; if the check fails, it retries when navigating to another page. It cannot send notifications when all workbook pages are closed. The preference is stored in the browser. Browser or operating system settings may also block notifications.
 
 The local `changelog_notifications` Sphinx extension generates a fingerprint of `book/changelog.md` for each HTML build. To use another document, set `changelog_notifications_docname` in the Sphinx configuration to its document name (without the file extension). Notifications reflect changes in the deployed book, not unpublished source changes.
 

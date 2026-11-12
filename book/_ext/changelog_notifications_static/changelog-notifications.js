@@ -5,16 +5,34 @@
   const manifestUrl = new URL("changelog-notifications.json", script.src);
   const bookUrl = new URL("../", script.src);
   const storageKey = `changelog-notifications:${bookUrl.href}`;
-  const interval = 5 * 60 * 1000;
+  const sessionKey = `${storageKey}:checked`;
 
+  const toolbar = document.querySelector(".article-header-buttons");
+  if (!toolbar) {
+    console.error("Could not find the workbook's article header buttons.");
+    return;
+  }
   const panel = document.createElement("div");
   panel.className = "changelog-notifications";
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "btn btn-sm";
   const status = document.createElement("span");
   status.setAttribute("role", "status");
   panel.append(button, status);
-  document.body.append(panel);
+  toolbar.append(panel);
+
+  function setLabel(label) {
+    button.title = label;
+    button.setAttribute("aria-label", label);
+  }
+
+  function setIcon(enabled) {
+    const icon = document.createElement("i");
+    icon.setAttribute("aria-hidden", "true");
+    icon.className = enabled ? "fa-solid fa-bell" : "fa-solid fa-bell-slash";
+    button.replaceChildren(icon);
+  }
 
   function readState() {
     const value = localStorage.getItem(storageKey);
@@ -29,21 +47,25 @@
   function render() {
     if (!window.isSecureContext || !("Notification" in window)) {
       button.disabled = true;
-      button.textContent = "Changelog notifications unavailable";
-      status.textContent = "A secure connection and a supported browser are required.";
+      setLabel("Changelog notifications unavailable");
+      setIcon(false);
+      status.textContent = "Notifications require a secure connection and a supported browser.";
       return;
     }
     try {
       const state = readState();
       button.disabled = false;
-      button.textContent = state ? "Disable changelog notifications" : "Enable changelog notifications";
-      status.textContent = state ? "Checks while this book is open." : "";
+      setLabel(state ? "Disable changelog notifications" : "Enable changelog notifications");
+      button.setAttribute("aria-pressed", state ? "true" : "false");
+      setIcon(Boolean(state));
+      status.textContent = "";
       if (Notification.permission === "denied") {
         status.textContent = "Notifications are blocked in your browser's site settings.";
       }
     } catch (error) {
       button.disabled = true;
-      button.textContent = "Changelog notifications unavailable";
+      setLabel("Changelog notifications unavailable");
+      setIcon(false);
       status.textContent = "Browser storage is unavailable.";
       console.error("Could not read changelog notification settings:", error);
     }
@@ -61,21 +83,24 @@
 
   async function check() {
     try {
-      if (!readState() || Notification.permission !== "granted") return;
+      if (!readState() || Notification.permission !== "granted" || sessionStorage.getItem(sessionKey)) return;
       const manifest = await getManifest();
       const state = readState();
-      if (!state || state.fingerprint === manifest.fingerprint || Notification.permission !== "granted") return;
-      const notification = new Notification("Workbook changelog updated", {
-        body: "Open the changelog to see what has changed.",
-      });
-      notification.onclick = () => {
-        window.focus();
-        window.location.href = new URL(manifest.url, bookUrl).href;
-      };
-      localStorage.setItem(storageKey, JSON.stringify({ fingerprint: manifest.fingerprint }));
+      if (!state || Notification.permission !== "granted") return;
+      if (state.fingerprint !== manifest.fingerprint) {
+        const notification = new Notification("Workbook changelog updated", {
+          body: "Open the changelog to see what has changed.",
+        });
+        notification.onclick = () => {
+          window.focus();
+          window.location.href = new URL(manifest.url, bookUrl).href;
+        };
+        localStorage.setItem(storageKey, JSON.stringify({ fingerprint: manifest.fingerprint }));
+      }
+      sessionStorage.setItem(sessionKey, "1");
       render();
     } catch (error) {
-      status.textContent = "Could not check the changelog; will retry.";
+      status.textContent = "Could not check the changelog; navigating to another page will retry.";
       console.error("Could not check changelog notifications:", error);
     }
   }
@@ -95,6 +120,7 @@
         return;
       }
       const manifest = await getManifest();
+      sessionStorage.setItem(sessionKey, "1");
       localStorage.setItem(storageKey, JSON.stringify({ fingerprint: manifest.fingerprint }));
       render();
     } catch (error) {
@@ -110,6 +136,5 @@
   render();
   if (window.isSecureContext && "Notification" in window) {
     check();
-    window.setInterval(check, interval);
   }
 })();

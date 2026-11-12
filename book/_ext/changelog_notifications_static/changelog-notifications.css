@@ -1,23 +1,18 @@
 .changelog-notifications {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
+  position: relative;
+  display: inline-flex;
+}
+
+.changelog-notifications span:not(:empty) {
+  position: absolute;
+  top: 100%;
+  right: 0;
   z-index: 100;
-  max-width: min(22rem, calc(100vw - 2rem));
+  width: min(20rem, calc(100vw - 2rem));
   padding: 0.5rem;
   border: 1px solid var(--pst-color-border, #777);
   border-radius: 0.4rem;
   background: var(--pst-color-background, #fff);
   color: var(--pst-color-text-base, #222);
-  box-shadow: 0 2px 6px #0003;
   font-size: 0.85rem;
-}
-
-.changelog-notifications button {
-  padding: 0.35rem 0.6rem;
-}
-
-.changelog-notifications span:not(:empty) {
-  display: block;
-  margin-top: 0.25rem;
 }

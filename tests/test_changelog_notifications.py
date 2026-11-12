@@ -21,6 +21,7 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 (source / "conf.py").write_text(
                     f"import sys\nsys.path.insert(0, {str(EXTENSIONS)!r})\n"
                     "extensions = ['changelog_notifications']\n"
+                    "html_theme = 'sphinx_book_theme'\n"
                     "changelog_notifications_docname = 'updates'\n",
                     encoding="utf-8",
                 )
@@ -46,6 +47,7 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertTrue((output / "_static" / "changelog-notifications.js").is_file())
                 self.assertTrue((output / "_static" / "changelog-notifications.css").is_file())
                 self.assertIn("changelog-notifications.js", (output / "index.html").read_text(encoding="utf-8"))
+                self.assertIn('class="article-header-buttons"', (output / "index.html").read_text(encoding="utf-8"))
 
                 changelog.write_text("Updates\n=======\n\nSecond.\n", encoding="utf-8")
                 build()
