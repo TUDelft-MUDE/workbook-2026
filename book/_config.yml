@@ -23,7 +23,8 @@ sphinx:
       use_repository_button: true
       use_issues_button : true
       announcement: "<p>This version of the workbook doesn't include solutions. The version with solution can be found here: <a href='https://mude.citg.tudelft.nl/workbook-2026' style='color: cyan;'>mude.citg.tudelft.nl/workbook-2026</a></p>"
-
+      article_header_end:
+        - changelog-article-header-buttons.html
     html_show_copyright: false
     html_last_updated_fmt: ''
     html_static_path: ["figures"] # add folders that contain files that need to be included, such as the location of the logo(s)
@@ -44,6 +45,7 @@ sphinx:
     - sphinx_tudelft_theme
   local_extensions:
     html_linkcheck: _ext/
+    changelog_notifications: _ext/
 
 teachbooks:
   attribution_color: attributiongrey
