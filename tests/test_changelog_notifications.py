@@ -96,6 +96,9 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 )
                 self.assertNotIn('class="dropdown changelog-notifications"', left_header)
                 self.assertIn('class="dropdown changelog-notifications"', right_header)
+                notification_html = right_header.split(
+                    '<div class="dropdown changelog-notifications">', 1
+                )[1].split('<div class="dropdown dropdown-download-buttons">', 1)[0]
                 parser = HeaderParser()
                 parser.feed(html)
                 self.assertEqual(len(parser.matches), 3)
@@ -105,7 +108,8 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertLess(right_header.index('class="dropdown changelog-notifications"'),
                                 right_header.index("btn-fullscreen-button"))
                 self.assertIn('class="btn btn-sm" disabled', right_header)
-                self.assertIn('data-bs-toggle="tooltip"', right_header)
+                self.assertNotIn('data-bs-toggle="tooltip"', notification_html)
+                self.assertNotIn('title="Enable JavaScript to use changelog notifications"', notification_html)
                 self.assertIn('class="dropdown-item-text" role="status"', right_header)
                 self.assertIn('class="btn btn-sm dropdown-item changelog-notifications-toggle"', right_header)
                 self.assertIn('class="btn__icon-container" data-changelog-toggle-icon', right_header)

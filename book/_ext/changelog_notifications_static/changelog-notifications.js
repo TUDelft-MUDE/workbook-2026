@@ -43,14 +43,6 @@
 
   function setLabel(label) {
     button.setAttribute("aria-label", label);
-    const tooltip = window.bootstrap?.Tooltip?.getInstance(button);
-    if (tooltip) {
-      button.setAttribute("data-bs-original-title", label);
-      button.removeAttribute("title");
-      tooltip.setContent({ ".tooltip-inner": label });
-    } else {
-      button.title = label;
-    }
   }
 
   function setStatus(message, dismissible = false) {
