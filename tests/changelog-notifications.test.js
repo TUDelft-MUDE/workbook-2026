@@ -35,12 +35,14 @@ function createPage(options = {}) {
       setAttribute(name, value) { attributes[name] = value; },
       removeAttribute(name) { delete attributes[name]; },
       addEventListener(name, callback) { listeners[name] = callback; },
+      focus() { this.focused = true; },
     };
   }
   const panel = element();
   const button = element();
   const menu = element();
   const status = element();
+  const statusClose = element();
   const intro = element();
   const introEnable = element();
   const introDismiss = element();
@@ -49,6 +51,7 @@ function createPage(options = {}) {
   panel.querySelector = (selector) => {
     if (selector === "button") return button;
     if (selector === '[role="status"]') return status;
+    if (selector === "[data-changelog-status-close]") return statusClose;
     if (selector === ".changelog-notifications-intro") return intro;
     if (selector === "[data-changelog-enable]") return introEnable;
     if (selector === "[data-changelog-dismiss]") return introDismiss;
@@ -106,6 +109,7 @@ function createPage(options = {}) {
     panel,
     button,
     status,
+    statusClose,
     menu,
     intro,
     introEnable,
@@ -213,6 +217,36 @@ test("a dismissed permission request explains how to retry or find site settings
   assert.match(page.status.textContent, /Try the bell again/);
   assert.match(page.status.textContent, /If no prompt appears, check your browser's site settings/);
   assert.equal(page.menu.classList.contains("show"), true);
+});
+
+test("blocked guidance appears only on the first page of a tab session and can be closed", async () => {
+  const first = createPage({ permission: "denied", requestResult: "denied" });
+  assert.equal(first.menu.classList.contains("show"), true);
+  assert.equal(first.statusClose.hidden, false);
+  first.statusClose.listeners.click();
+  assert.equal(first.menu.classList.contains("show"), false);
+  assert.equal(first.statusClose.hidden, true);
+  assert.equal(first.button.focused, true);
+
+  const later = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "denied", requestResult: "denied",
+  });
+  assert.equal(later.menu.classList.contains("show"), false);
+  await later.button.listeners.click();
+  assert.match(later.status.textContent, /Notifications are blocked/);
+  assert.equal(later.statusClose.hidden, false);
+  assert.equal(later.menu.classList.contains("show"), true);
+
+  const newSession = createPage({ values: first.values, permission: "denied" });
+  assert.equal(newSession.menu.classList.contains("show"), true);
+});
+
+test("blocked guidance is not shown automatically after the first page if permission changes", () => {
+  const first = createPage();
+  const later = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "denied",
+  });
+  assert.equal(later.menu.classList.contains("show"), false);
 });
 
 test("updates the theme tooltip when the button state changes", async () => {

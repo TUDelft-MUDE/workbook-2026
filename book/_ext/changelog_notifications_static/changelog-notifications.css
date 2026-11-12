@@ -21,6 +21,23 @@
   white-space: normal;
 }
 
+.changelog-notifications-status .dropdown-item-text {
+  padding-right: 3rem;
+}
+
+.changelog-notifications-status-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.changelog-notifications-status-close[hidden] {
+  display: none;
+}
+
 .changelog-notifications-intro .dropdown-item-text {
   margin-bottom: 0.75rem;
   color: var(--pst-color-text-base);

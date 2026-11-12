@@ -6,6 +6,7 @@
   const bookUrl = new URL("../", script.src);
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
+  const visitedKey = `${storageKey}:visited`;
   const introKey = `${storageKey}:intro-dismissed`;
 
   const panel = document.querySelector(".changelog-notifications");
@@ -15,6 +16,7 @@
   }
   const button = panel.querySelector("button");
   const status = panel.querySelector('[role="status"]');
+  const statusClose = panel.querySelector("[data-changelog-status-close]");
   const intro = panel.querySelector(".changelog-notifications-intro");
   const introEnable = panel.querySelector("[data-changelog-enable]");
   const introDismiss = panel.querySelector("[data-changelog-dismiss]");
@@ -41,8 +43,9 @@
     }
   }
 
-  function setStatus(message) {
+  function setStatus(message, dismissible = false) {
     status.textContent = message;
+    statusClose.hidden = !message || !dismissible;
     status.parentElement.classList.toggle("show", Boolean(message));
   }
 
@@ -63,7 +66,7 @@
     return state;
   }
 
-  function render() {
+  function render({ initial = false, showBlocked = false } = {}) {
     if (!window.isSecureContext || !("Notification" in window)) {
       showIntro(false);
       button.disabled = true;
@@ -73,6 +76,10 @@
       return;
     }
     try {
+      if (initial) {
+        showBlocked = !sessionStorage.getItem(visitedKey);
+        sessionStorage.setItem(visitedKey, "1");
+      }
       const state = readState();
       showIntro(!state && !localStorage.getItem(introKey) && Notification.permission !== "denied");
       button.disabled = false;
@@ -80,8 +87,8 @@
       button.setAttribute("aria-pressed", state ? "true" : "false");
       setIcon(Boolean(state));
       setStatus("");
-      if (Notification.permission === "denied") {
-        setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.");
+      if (showBlocked && Notification.permission === "denied") {
+        setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.", true);
       }
     } catch (error) {
       showIntro(false);
@@ -145,7 +152,7 @@
       button.disabled = true;
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        render();
+        render({ showBlocked: true });
         if (permission !== "denied") {
           setStatus("Notification permission was not granted. Try the bell again. If no prompt appears, check your browser's site settings, usually via the icon next to the address bar.");
         }
@@ -165,6 +172,10 @@
   }
 
   button.addEventListener("click", toggleNotifications);
+  statusClose.addEventListener("click", () => {
+    setStatus("");
+    button.focus();
+  });
   introEnable.addEventListener("click", toggleNotifications);
   introDismiss.addEventListener("click", () => {
     try {
@@ -179,7 +190,7 @@
   window.addEventListener("storage", (event) => {
     if (event.key === storageKey || event.key === introKey || event.key === null) render();
   });
-  render();
+  render({ initial: true });
   if (window.isSecureContext && "Notification" in window) {
     check();
   }
