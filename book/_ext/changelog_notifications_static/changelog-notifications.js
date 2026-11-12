@@ -26,9 +26,12 @@
   const introDismiss = panel.querySelector("[data-changelog-dismiss]");
 
   function showMenu(show) {
-    menu.hidden = !show;
     menu.classList.toggle("show", show);
-    button.setAttribute("aria-expanded", show ? "true" : "false");
+    panel.classList.toggle("show", show);
+    if (show) panel.classList.remove("hover-dismissed");
+    else if (panel.matches(":hover")) panel.classList.add("hover-dismissed");
+    const expanded = show || (panel.matches(":hover") && !panel.classList.contains("hover-dismissed"));
+    button.setAttribute("aria-expanded", expanded ? "true" : "false");
   }
 
   function showIntro(show) {
@@ -189,8 +192,21 @@
     }
   }
 
-  button.addEventListener("click", () => {
-    showMenu(menu.hidden);
+  button.addEventListener("shown.bs.dropdown", () => {
+    panel.classList.remove("hover-dismissed");
+    button.setAttribute("aria-expanded", "true");
+  });
+  button.addEventListener("hide.bs.dropdown", () => {
+    if (panel.matches(":hover")) panel.classList.add("hover-dismissed");
+  });
+  panel.addEventListener("mouseenter", () => {
+    if (!panel.classList.contains("hover-dismissed")) {
+      button.setAttribute("aria-expanded", "true");
+    }
+  });
+  panel.addEventListener("mouseleave", () => {
+    panel.classList.remove("hover-dismissed");
+    button.setAttribute("aria-expanded", menu.classList.contains("show") ? "true" : "false");
   });
   toggleButton.addEventListener("click", toggleNotifications);
   statusClose.addEventListener("click", () => {

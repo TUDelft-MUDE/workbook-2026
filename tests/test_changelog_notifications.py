@@ -108,7 +108,8 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertLess(right_header.index('class="dropdown changelog-notifications"'),
                                 right_header.index("btn-fullscreen-button"))
                 self.assertIn('class="btn btn-sm" disabled', right_header)
-                self.assertNotIn('data-bs-toggle="tooltip"', notification_html)
+                self.assertIn('data-bs-toggle="dropdown"', notification_html)
+                self.assertIn('</button>\n  <div class="dropdown-menu changelog-notifications-menu"', notification_html)
                 self.assertNotIn('title="Enable JavaScript to use changelog notifications"', notification_html)
                 self.assertIn('class="dropdown-item-text" role="status"', right_header)
                 self.assertIn('class="btn btn-sm dropdown-item changelog-notifications-toggle"', right_header)
@@ -116,6 +117,11 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertIn('data-changelog-toggle-label>Enable notifications', right_header)
                 self.assertIn('class="btn__text-container" data-changelog-toggle-label', right_header)
                 self.assertIn('data-changelog-dismiss', right_header)
+                notification_css = (
+                    EXTENSIONS / "changelog_notifications_static" / "changelog-notifications.css"
+                ).read_text(encoding="utf-8")
+                self.assertIn(".changelog-notifications:hover > .changelog-notifications-menu", notification_css)
+                self.assertIn(".changelog-notifications.hover-dismissed:hover", notification_css)
                 self.assertEqual(html.count('class="dropdown changelog-notifications"'), 1)
 
                 (source / "index.rst").write_text(

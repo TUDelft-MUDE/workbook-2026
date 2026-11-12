@@ -30,7 +30,10 @@ function createPage(options = {}) {
       classList: {
         toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); },
         contains(name) { return classes.has(name); },
+        add(name) { classes.add(name); },
+        remove(name) { classes.delete(name); },
       },
+      matches(selector) { return selector === ":hover" && this.hover; },
       replaceChildren(...children) { this.children = children; },
       setAttribute(name, value) { attributes[name] = value; },
       removeAttribute(name) { delete attributes[name]; },
@@ -50,7 +53,6 @@ function createPage(options = {}) {
   const toggleLabel = element();
   const introDismiss = element();
   button.disabled = true;
-  menu.hidden = true;
   statusContainer.hidden = true;
   intro.hidden = true;
   panel.querySelector = (selector) => {
@@ -135,18 +137,15 @@ function createPage(options = {}) {
   };
 }
 
-test("top-bar button switches between opt-in and opt-out", async () => {
+test("menu item switches between opt-in and opt-out", async () => {
   const page = createPage();
   assert.equal(page.button.disabled, false);
   assert.equal(page.button.attributes["aria-label"], "Changelog notification settings");
   assert.equal(page.toggleButton.attributes["aria-pressed"], "false");
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell-slash");
-  assert.equal(page.menu.hidden, false);
-  page.button.listeners.click();
-  assert.equal(page.menu.hidden, true);
-  page.button.listeners.click();
-  assert.equal(page.menu.hidden, false);
+  assert.equal(page.menu.classList.contains("show"), true);
+  assert.equal(page.button.attributes["aria-expanded"], "true");
   await page.toggleButton.listeners.click();
   assert.equal(page.fetchCount, 1);
   assert.equal(page.toggleLabel.textContent, "Disable notifications");
@@ -250,7 +249,6 @@ test("blocked guidance appears only on the first page of a tab session and can b
     values: first.values, sessionValues: first.sessionValues, permission: "denied", requestResult: "denied",
   });
   assert.equal(later.menu.classList.contains("show"), false);
-  later.button.listeners.click();
   await later.toggleButton.listeners.click();
   assert.match(later.status.textContent, /Notifications are blocked/);
   assert.equal(later.statusClose.hidden, false);
@@ -268,17 +266,35 @@ test("blocked guidance is not shown automatically after the first page if permis
   assert.equal(later.menu.classList.contains("show"), false);
 });
 
-test("the bell opens the menu and the menu item label changes with notification state", async () => {
+test("the menu item label and icon change with notification state", async () => {
   const page = createPage();
-  assert.equal(page.menu.hidden, false);
-  page.button.listeners.click();
-  assert.equal(page.menu.hidden, true);
-  page.button.listeners.click();
-  assert.equal(page.menu.hidden, false);
+  assert.equal(page.menu.classList.contains("show"), true);
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
   await page.toggleButton.listeners.click();
   assert.equal(page.toggleLabel.textContent, "Disable notifications");
   assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
+});
+
+test("hover is transient and clicking closed suppresses hover until pointer leaves", () => {
+  const key = "changelog-notifications:https://example.org/book/:intro-dismissed";
+  const page = createPage({ values: new Map([[key, "1"]]) });
+  page.panel.hover = true;
+  page.panel.listeners.mouseenter();
+  assert.equal(page.button.attributes["aria-expanded"], "true");
+
+  page.menu.classList.toggle("show", true);
+  page.panel.classList.toggle("show", true);
+  page.button.listeners["shown.bs.dropdown"]();
+  page.button.listeners["hide.bs.dropdown"]();
+  page.menu.classList.toggle("show", false);
+  page.panel.classList.toggle("show", false);
+  page.button.setAttribute("aria-expanded", "false");
+  assert.equal(page.panel.classList.contains("hover-dismissed"), true);
+
+  page.panel.hover = false;
+  page.panel.listeners.mouseleave();
+  assert.equal(page.panel.classList.contains("hover-dismissed"), false);
+  assert.equal(page.button.attributes["aria-expanded"], "false");
 });
 
 test("migrates a legacy content fingerprint without a false notification", async () => {
@@ -311,7 +327,7 @@ test("rejects malformed commit fingerprints", async () => {
 test("first-visit prompt can be dismissed without requesting permission", () => {
   const page = createPage();
   assert.equal(page.intro.hidden, false);
-  assert.equal(page.menu.hidden, false);
+  assert.equal(page.menu.classList.contains("show"), true);
   assert.equal(page.permissionRequests, 0);
   page.introDismiss.listeners.click();
   assert.equal(page.intro.hidden, true);

@@ -11,6 +11,16 @@
   width: min(20rem, calc(100vw - 2rem));
 }
 
+@media (hover: hover) {
+  .changelog-notifications:hover > .changelog-notifications-menu {
+    display: block;
+  }
+
+  .changelog-notifications.hover-dismissed:hover > .changelog-notifications-menu:not(.show) {
+    display: none;
+  }
+}
+
 .changelog-notifications .dropdown-item-text {
   color: inherit;
   white-space: normal;
@@ -71,7 +81,6 @@
   outline-offset: 2px;
 }
 
-.changelog-notifications .dropdown-menu[hidden],
 .changelog-notifications-status[hidden],
 .changelog-notifications-intro[hidden] {
   display: none;
