@@ -104,13 +104,16 @@
     return manifest;
   }
 
+  // The first page of a tab session may notify; later pages only refresh the
+  // stored commit, since the reader is already seeing the current content.
   async function check() {
+    const alreadyChecked = Boolean(sessionStorage.getItem(sessionKey));
     try {
-      if (!readState() || Notification.permission !== "granted" || sessionStorage.getItem(sessionKey)) return;
+      if (!readState() || Notification.permission !== "granted") return;
       const manifest = await getManifest();
       const state = readState();
       if (!state || Notification.permission !== "granted") return;
-      if (state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
+      if (!alreadyChecked && state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
         const notification = new Notification("Workbook changelog updated", {
           body: "Open the changelog to see what has changed.",
         });
@@ -125,6 +128,7 @@
       sessionStorage.setItem(sessionKey, "1");
       render();
     } catch (error) {
+      if (alreadyChecked) return;
       setStatus("Could not check the changelog; navigating to another page will retry.");
       console.error("Could not check changelog notifications:", error);
     }

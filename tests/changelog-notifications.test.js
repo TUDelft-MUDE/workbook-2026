@@ -136,7 +136,7 @@ test("top-bar button switches between opt-in and opt-out", async () => {
   assert.equal(page.button.attributes["aria-label"], "Enable changelog notifications");
 });
 
-test("checks once per tab session, not on subsequent pages", async () => {
+test("notifies once per tab session; later pages silently refresh the stored commit", async () => {
   const first = createPage();
   await first.button.listeners.click();
   const updated = { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" };
@@ -144,20 +144,25 @@ test("checks once per tab session, not on subsequent pages", async () => {
     values: first.values, sessionValues: first.sessionValues, permission: "granted", manifest: updated,
   });
   await finishCheck();
-  assert.equal(nextPage.fetchCount, 0);
   assert.equal(nextPage.notifications.length, 0);
+  assert.equal(JSON.parse(first.values.get([...first.values.keys()].find((key) => !key.endsWith(":intro-dismissed")))).fingerprint, fingerprint("b"));
 
-  const newSession = createPage({ values: first.values, permission: "granted", manifest: updated });
+  const newer = { ...updated, fingerprint: fingerprint("c") };
+  const newSession = createPage({ values: first.values, permission: "granted", manifest: newer });
   await finishCheck();
   assert.equal(newSession.fetchCount, 1);
   assert.equal(newSession.notifications.length, 1);
   newSession.notifications[0].onclick();
   assert.equal(newSession.window.location.href, "https://example.org/book/changelog.html");
   const anotherPage = createPage({
-    values: first.values, sessionValues: newSession.sessionValues, permission: "granted", manifest: updated,
+    values: first.values, sessionValues: newSession.sessionValues, permission: "granted", manifest: newer,
   });
   await finishCheck();
-  assert.equal(anotherPage.fetchCount, 0);
+  assert.equal(anotherPage.notifications.length, 0);
+
+  const revisit = createPage({ values: first.values, permission: "granted", manifest: newer });
+  await finishCheck();
+  assert.equal(revisit.notifications.length, 0);
 });
 
 test("tabs share the last notified fingerprint", async () => {
