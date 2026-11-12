@@ -147,12 +147,16 @@ test("menu item switches between opt-in and opt-out", async () => {
   assert.equal(page.button.children[0].className, "fa-solid fa-bell-slash");
   assert.equal(page.menu.classList.contains("show"), true);
   assert.equal(page.button.attributes["aria-expanded"], "true");
+  page.panel.hover = true;
   await page.toggleButton.listeners.click();
   assert.equal(page.fetchCount, 1);
   assert.equal(page.toggleLabel.textContent, "Disable notifications");
   assert.equal(page.toggleButton.attributes["aria-pressed"], "true");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell");
   assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell-slash");
+  assert.equal(page.menu.classList.contains("show"), false);
+  assert.equal(page.button.attributes["aria-expanded"], "false");
+  assert.equal(page.panel.classList.contains("hover-dismissed"), true);
   await page.toggleButton.listeners.click();
   assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
@@ -292,6 +296,7 @@ test("after browser permission is allowed, prompt once to finish enabling notifi
   await later.toggleButton.listeners.click();
   assert.equal(later.toggleLabel.textContent, "Disable notifications");
   assert.equal(later.values.has(key), true);
+  assert.equal(later.menu.classList.contains("show"), false);
 });
 
 test("already enabled subscribers are not prompted when browser permission is restored", async () => {

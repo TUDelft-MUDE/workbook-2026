@@ -191,7 +191,7 @@
         fingerprint: manifest.fingerprint, scheme: manifest.scheme,
       }));
       render();
-      showMenu(true);
+      showMenu(false);
     } catch (error) {
       render();
       setStatus("Could not enable notifications; please try again.");
