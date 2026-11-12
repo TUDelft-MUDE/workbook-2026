@@ -245,9 +245,11 @@ test("a dismissed permission request explains how to retry or find site settings
 test("blocked guidance appears only on the first page of a tab session and can be closed", async () => {
   const first = createPage({ permission: "denied", requestResult: "denied" });
   assert.equal(first.menu.classList.contains("show"), true);
+  assert.equal(first.menu.classList.contains("has-message"), true);
   assert.equal(first.statusClose.hidden, false);
   first.statusClose.listeners.click();
   assert.equal(first.menu.classList.contains("show"), false);
+  assert.equal(first.menu.classList.contains("has-message"), false);
   assert.equal(first.statusClose.hidden, true);
   assert.equal(first.button.focused, true);
 
@@ -281,6 +283,7 @@ test("after browser permission is allowed, prompt once to finish enabling notifi
   });
   assert.equal(allowed.menu.classList.contains("show"), true);
   assert.match(allowed.status.textContent, /Select Enable notifications/);
+  assert.equal(allowed.menu.classList.contains("has-message"), true);
   assert.equal(allowed.statusClose.hidden, false);
   assert.equal(allowed.toggleLabel.textContent, "Enable notifications");
   assert.equal(allowed.toggleIcon.children[0].className, "fa-solid fa-bell");
@@ -386,10 +389,12 @@ test("rejects malformed commit fingerprints", async () => {
 test("first-visit prompt can be dismissed without requesting permission", () => {
   const page = createPage();
   assert.equal(page.intro.hidden, false);
+  assert.equal(page.menu.classList.contains("has-message"), true);
   assert.equal(page.menu.classList.contains("show"), true);
   assert.equal(page.permissionRequests, 0);
   page.introDismiss.listeners.click();
   assert.equal(page.intro.hidden, true);
+  assert.equal(page.menu.classList.contains("has-message"), false);
   assert.equal(page.permissionRequests, 0);
   const later = createPage({ values: page.values });
   assert.equal(later.intro.hidden, true);
