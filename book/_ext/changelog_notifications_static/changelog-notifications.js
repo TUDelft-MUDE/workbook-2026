@@ -81,7 +81,7 @@
       setIcon(Boolean(state));
       setStatus("");
       if (Notification.permission === "denied") {
-        setStatus("Notifications are blocked in your browser's site settings.");
+        setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.");
       }
     } catch (error) {
       showIntro(false);
@@ -146,7 +146,9 @@
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         render();
-        if (permission !== "denied") setStatus("Notification permission was not granted.");
+        if (permission !== "denied") {
+          setStatus("Notification permission was not granted. Try the bell again. If no prompt appears, check your browser's site settings, usually via the icon next to the address bar.");
+        }
         return;
       }
       const manifest = await getManifest();

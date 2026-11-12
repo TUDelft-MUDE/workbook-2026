@@ -182,7 +182,8 @@ test("denied permission and failed checks do not enable or lose updates", async 
   const denied = createPage({ requestResult: "denied" });
   await denied.button.listeners.click();
   assert.equal(denied.values.has("changelog-notifications:https://example.org/book/"), false);
-  assert.match(denied.status.textContent, /blocked/);
+  assert.match(denied.status.textContent, /Allow them for this site in your browser's site settings/);
+  assert.match(denied.status.textContent, /icon next to the address bar/);
   assert.equal(denied.menu.classList.contains("show"), true);
 
   const offline = createPage({ fetchError: true });
@@ -202,6 +203,16 @@ test("denied permission and failed checks do not enable or lose updates", async 
   const retry = createPage({ ...options, sessionValues: failed.sessionValues });
   await finishCheck();
   assert.equal(retry.notifications.length, 1);
+});
+
+test("a dismissed permission request explains how to retry or find site settings", async () => {
+  const page = createPage({ requestResult: "default" });
+  await page.introEnable.listeners.click();
+  assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
+  assert.equal(page.fetchCount, 0);
+  assert.match(page.status.textContent, /Try the bell again/);
+  assert.match(page.status.textContent, /If no prompt appears, check your browser's site settings/);
+  assert.equal(page.menu.classList.contains("show"), true);
 });
 
 test("updates the theme tooltip when the button state changes", async () => {
@@ -280,6 +291,7 @@ test("prompt is hidden when notifications are blocked and storage errors are vis
   const blocked = createPage({ permission: "denied" });
   assert.equal(blocked.intro.hidden, true);
   assert.equal(blocked.permissionRequests, 0);
+  assert.match(blocked.status.textContent, /Allow them for this site in your browser's site settings/);
   const page = createPage({ storageError: true });
   page.introDismiss.listeners.click();
   assert.equal(page.intro.hidden, true);
