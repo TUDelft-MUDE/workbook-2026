@@ -101,7 +101,7 @@
       toggleLabel.textContent = state ? "Disable notifications" : "Enable notifications";
       toggleButton.setAttribute("aria-pressed", state ? "true" : "false");
       setIcon(button, Boolean(state));
-      setIcon(toggleIcon, Boolean(state));
+      setIcon(toggleIcon, !state);
       setStatus("");
       if (showBlocked && Notification.permission === "denied") {
         setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.", true);
@@ -117,7 +117,7 @@
       toggleButton.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(button, false);
-      setIcon(toggleIcon, false);
+      setIcon(toggleIcon, true);
       setStatus("Browser storage is unavailable.");
       showMenu(true);
       console.error("Could not read changelog notification settings:", error);

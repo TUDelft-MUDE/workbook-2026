@@ -143,6 +143,7 @@ test("menu item switches between opt-in and opt-out", async () => {
   assert.equal(page.button.attributes["aria-label"], "Changelog notification settings");
   assert.equal(page.toggleButton.attributes["aria-pressed"], "false");
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell-slash");
   assert.equal(page.menu.classList.contains("show"), true);
   assert.equal(page.button.attributes["aria-expanded"], "true");
@@ -151,10 +152,11 @@ test("menu item switches between opt-in and opt-out", async () => {
   assert.equal(page.toggleLabel.textContent, "Disable notifications");
   assert.equal(page.toggleButton.attributes["aria-pressed"], "true");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell");
-  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell-slash");
   await page.toggleButton.listeners.click();
   assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
 });
 
 test("notifies once per tab session; later pages silently refresh the stored commit", async () => {
@@ -277,6 +279,7 @@ test("after browser permission is allowed, prompt once to finish enabling notifi
   assert.match(allowed.status.textContent, /Select Enable notifications/);
   assert.equal(allowed.statusClose.hidden, false);
   assert.equal(allowed.toggleLabel.textContent, "Enable notifications");
+  assert.equal(allowed.toggleIcon.children[0].className, "fa-solid fa-bell");
   assert.equal(allowed.values.has(key), false);
   assert.equal(allowed.fetchCount, 0);
   allowed.statusClose.listeners.click();
@@ -323,7 +326,7 @@ test("the menu item label and icon change with notification state", async () => 
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
   await page.toggleButton.listeners.click();
   assert.equal(page.toggleLabel.textContent, "Disable notifications");
-  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
+  assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell-slash");
 });
 
 test("hover is transient and clicking closed suppresses hover until pointer leaves", () => {
