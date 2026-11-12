@@ -7,6 +7,7 @@
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
   const visitedKey = `${storageKey}:visited`;
+  const permissionKey = `${storageKey}:permission`;
   const introKey = `${storageKey}:intro-dismissed`;
 
   const panel = document.querySelector(".changelog-notifications");
@@ -82,12 +83,17 @@
       return;
     }
     try {
+      const previousPermission = sessionStorage.getItem(permissionKey);
+      sessionStorage.setItem(permissionKey, Notification.permission);
       if (initial) {
         showBlocked = !sessionStorage.getItem(visitedKey);
         sessionStorage.setItem(visitedKey, "1");
       }
       const state = readState();
-      const showPrompt = !state && !localStorage.getItem(introKey) && Notification.permission !== "denied";
+      const permissionGranted = initial && previousPermission && previousPermission !== "granted"
+        && Notification.permission === "granted" && !state;
+      const showPrompt = !permissionGranted && !state && !localStorage.getItem(introKey)
+        && Notification.permission !== "denied";
       showIntro(showPrompt);
       button.disabled = false;
       toggleButton.disabled = false;
@@ -99,8 +105,10 @@
       setStatus("");
       if (showBlocked && Notification.permission === "denied") {
         setStatus("Notifications are blocked. Allow them for this site in your browser's site settings (usually via the icon next to the address bar), then use the bell if notifications are not enabled.", true);
+      } else if (permissionGranted) {
+        setStatus("Browser permission is allowed. Select Enable notifications below to turn on changelog notifications.", true);
       }
-      if (initial && (showPrompt || (showBlocked && Notification.permission === "denied"))) {
+      if (initial && (showPrompt || permissionGranted || (showBlocked && Notification.permission === "denied"))) {
         showMenu(true);
       }
     } catch (error) {

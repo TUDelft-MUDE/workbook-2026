@@ -266,6 +266,57 @@ test("blocked guidance is not shown automatically after the first page if permis
   assert.equal(later.menu.classList.contains("show"), false);
 });
 
+test("after browser permission is allowed, prompt once to finish enabling notifications", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const first = createPage({ requestResult: "denied" });
+  await first.toggleButton.listeners.click();
+  const allowed = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "granted",
+  });
+  assert.equal(allowed.menu.classList.contains("show"), true);
+  assert.match(allowed.status.textContent, /Select Enable notifications/);
+  assert.equal(allowed.statusClose.hidden, false);
+  assert.equal(allowed.toggleLabel.textContent, "Enable notifications");
+  assert.equal(allowed.values.has(key), false);
+  assert.equal(allowed.fetchCount, 0);
+  allowed.statusClose.listeners.click();
+  assert.equal(allowed.menu.classList.contains("show"), false);
+
+  const later = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "granted",
+  });
+  assert.equal(later.menu.classList.contains("show"), false);
+  await later.toggleButton.listeners.click();
+  assert.equal(later.toggleLabel.textContent, "Disable notifications");
+  assert.equal(later.values.has(key), true);
+});
+
+test("already enabled subscribers are not prompted when browser permission is restored", async () => {
+  const first = createPage();
+  await first.toggleButton.listeners.click();
+  const blocked = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "denied",
+  });
+  const restored = createPage({
+    values: blocked.values, sessionValues: blocked.sessionValues, permission: "granted",
+  });
+  await finishCheck();
+  assert.equal(restored.menu.classList.contains("show"), false);
+  assert.equal(restored.toggleLabel.textContent, "Disable notifications");
+  assert.equal(restored.status.textContent, "");
+});
+
+test("manually allowing permission after a dismissed request offers the enable action", async () => {
+  const first = createPage({ requestResult: "default" });
+  await first.toggleButton.listeners.click();
+  const restored = createPage({
+    values: first.values, sessionValues: first.sessionValues, permission: "granted",
+  });
+  assert.equal(restored.menu.classList.contains("show"), true);
+  assert.match(restored.status.textContent, /Select Enable notifications/);
+  assert.equal(restored.permissionRequests, 0);
+});
+
 test("the menu item label and icon change with notification state", async () => {
   const page = createPage();
   assert.equal(page.menu.classList.contains("show"), true);
