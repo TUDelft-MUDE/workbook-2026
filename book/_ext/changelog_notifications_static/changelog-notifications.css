@@ -10,7 +10,12 @@
   width: min(20rem, calc(100vw - 2rem));
 }
 
-.changelog-notifications .dropdown-item-text {
+.changelog-notifications .dropdown-item-text,
+.changelog-notifications-intro .dropdown-item {
   color: inherit;
   white-space: normal;
+}
+
+.changelog-notifications .dropdown-menu[hidden] {
+  display: none;
 }

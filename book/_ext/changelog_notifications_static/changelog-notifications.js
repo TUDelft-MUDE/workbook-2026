@@ -6,6 +6,7 @@
   const bookUrl = new URL("../", script.src);
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
+  const introKey = `${storageKey}:intro-dismissed`;
 
   const panel = document.querySelector(".changelog-notifications");
   if (!panel) {
@@ -14,6 +15,19 @@
   }
   const button = panel.querySelector("button");
   const status = panel.querySelector('[role="status"]');
+  const intro = panel.querySelector(".changelog-notifications-intro");
+  const introEnable = panel.querySelector("[data-changelog-enable]");
+  const introDismiss = panel.querySelector("[data-changelog-dismiss]");
+
+  function showIntro(show) {
+    intro.hidden = !show;
+    intro.classList.toggle("show", show);
+  }
+
+  function dismissIntro() {
+    localStorage.setItem(introKey, "1");
+    showIntro(false);
+  }
 
   function setLabel(label) {
     button.setAttribute("aria-label", label);
@@ -51,6 +65,7 @@
 
   function render() {
     if (!window.isSecureContext || !("Notification" in window)) {
+      showIntro(false);
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(false);
@@ -59,6 +74,7 @@
     }
     try {
       const state = readState();
+      showIntro(!state && !localStorage.getItem(introKey) && Notification.permission !== "denied");
       button.disabled = false;
       setLabel(state ? "Disable changelog notifications" : "Enable changelog notifications");
       button.setAttribute("aria-pressed", state ? "true" : "false");
@@ -68,6 +84,7 @@
         setStatus("Notifications are blocked in your browser's site settings.");
       }
     } catch (error) {
+      showIntro(false);
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(false);
@@ -113,8 +130,9 @@
     }
   }
 
-  button.addEventListener("click", async () => {
+  async function toggleNotifications() {
     try {
+      dismissIntro();
       if (readState()) {
         localStorage.removeItem(storageKey);
         render();
@@ -138,10 +156,22 @@
       setStatus("Could not enable notifications; please try again.");
       console.error("Could not enable changelog notifications:", error);
     }
+  }
+
+  button.addEventListener("click", toggleNotifications);
+  introEnable.addEventListener("click", toggleNotifications);
+  introDismiss.addEventListener("click", () => {
+    try {
+      dismissIntro();
+    } catch (error) {
+      showIntro(false);
+      setStatus("Could not save your preference in browser storage.");
+      console.error("Could not dismiss changelog notifications prompt:", error);
+    }
   });
 
   window.addEventListener("storage", (event) => {
-    if (event.key === storageKey || event.key === null) render();
+    if (event.key === storageKey || event.key === introKey || event.key === null) render();
   });
   render();
   if (window.isSecureContext && "Notification" in window) {

@@ -19,6 +19,7 @@ function createPage(options = {}) {
     fingerprint: fingerprint("a"), scheme: "git-commit", url: "changelog.html",
   };
   let fetchCount = 0;
+  let permissionRequests = 0;
   function element() {
     const listeners = {};
     const attributes = {};
@@ -40,11 +41,17 @@ function createPage(options = {}) {
   const button = element();
   const menu = element();
   const status = element();
+  const intro = element();
+  const introEnable = element();
+  const introDismiss = element();
   button.disabled = true;
   status.parentElement = menu;
   panel.querySelector = (selector) => {
     if (selector === "button") return button;
     if (selector === '[role="status"]') return status;
+    if (selector === ".changelog-notifications-intro") return intro;
+    if (selector === "[data-changelog-enable]") return introEnable;
+    if (selector === "[data-changelog-dismiss]") return introDismiss;
     throw new Error(`Unexpected selector: ${selector}`);
   };
   const document = {
@@ -62,20 +69,25 @@ function createPage(options = {}) {
   }
   Notification.permission = options.permission || "default";
   Notification.requestPermission = async () => {
+    permissionRequests++;
     Notification.permission = options.requestResult || "granted";
     return Notification.permission;
   };
+  const windowListeners = {};
   const window = {
     Notification,
     isSecureContext: true,
     location: { href: "" },
     focus() {},
-    addEventListener() {},
+    addEventListener(name, callback) { windowListeners[name] = callback; },
   };
   function storage(map) {
     return {
       getItem: (key) => map.get(key) || null,
-      setItem: (key, value) => map.set(key, value),
+      setItem: (key, value) => {
+        if (options.storageError) throw new Error("storage unavailable");
+        map.set(key, value);
+      },
       removeItem: (key) => map.delete(key),
     };
   }
@@ -95,11 +107,16 @@ function createPage(options = {}) {
     button,
     status,
     menu,
+    intro,
+    introEnable,
+    introDismiss,
     notifications,
     values,
     sessionValues,
     window,
+    windowListeners,
     get fetchCount() { return fetchCount; },
+    get permissionRequests() { return permissionRequests; },
   };
 }
 
@@ -115,7 +132,7 @@ test("top-bar button switches between opt-in and opt-out", async () => {
   assert.equal(page.button.attributes["aria-pressed"], "true");
   assert.equal(page.button.children[0].className, "fa-solid fa-bell");
   await page.button.listeners.click();
-  assert.equal(page.values.size, 0);
+  assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.equal(page.button.attributes["aria-label"], "Enable changelog notifications");
 });
 
@@ -159,13 +176,13 @@ test("tabs share the last notified fingerprint", async () => {
 test("denied permission and failed checks do not enable or lose updates", async () => {
   const denied = createPage({ requestResult: "denied" });
   await denied.button.listeners.click();
-  assert.equal(denied.values.size, 0);
+  assert.equal(denied.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.match(denied.status.textContent, /blocked/);
   assert.equal(denied.menu.classList.contains("show"), true);
 
   const offline = createPage({ fetchError: true });
   await offline.button.listeners.click();
-  assert.equal(offline.values.size, 0);
+  assert.equal(offline.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.match(offline.status.textContent, /try again/);
 
   const enabled = createPage();
@@ -217,6 +234,49 @@ test("rejects malformed commit fingerprints", async () => {
     fingerprint: "a".repeat(41), scheme: "git-commit", url: "changelog.html",
   } });
   await page.button.listeners.click();
-  assert.equal(page.values.size, 0);
+  assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.match(page.status.textContent, /try again/);
+});
+
+test("first-visit prompt can be dismissed without requesting permission", () => {
+  const page = createPage();
+  assert.equal(page.intro.hidden, false);
+  assert.equal(page.intro.classList.contains("show"), true);
+  assert.equal(page.permissionRequests, 0);
+  page.introDismiss.listeners.click();
+  assert.equal(page.intro.hidden, true);
+  assert.equal(page.permissionRequests, 0);
+  const later = createPage({ values: page.values });
+  assert.equal(later.intro.hidden, true);
+  assert.equal(later.button.disabled, false);
+});
+
+test("enabling from the prompt requests permission and hides it on later visits", async () => {
+  const page = createPage();
+  await page.introEnable.listeners.click();
+  assert.equal(page.permissionRequests, 1);
+  assert.equal(page.intro.hidden, true);
+  assert.equal(page.button.attributes["aria-pressed"], "true");
+  const later = createPage({ values: page.values, permission: "granted" });
+  assert.equal(later.intro.hidden, true);
+  await later.button.listeners.click();
+  assert.equal(later.intro.hidden, true);
+});
+
+test("another tab's dismissal hides the prompt", () => {
+  const first = createPage();
+  const second = createPage({ values: first.values });
+  first.introDismiss.listeners.click();
+  second.windowListeners.storage({ key: "changelog-notifications:https://example.org/book/:intro-dismissed" });
+  assert.equal(second.intro.hidden, true);
+});
+
+test("prompt is hidden when notifications are blocked and storage errors are visible", () => {
+  const blocked = createPage({ permission: "denied" });
+  assert.equal(blocked.intro.hidden, true);
+  assert.equal(blocked.permissionRequests, 0);
+  const page = createPage({ storageError: true });
+  page.introDismiss.listeners.click();
+  assert.equal(page.intro.hidden, true);
+  assert.match(page.status.textContent, /Could not save/);
 });
