@@ -5,6 +5,11 @@
 ## 2026-11-12: v2026.36.0.pre-release
 - Added group assignment week 2.2
 
+## 2026-11-12: v2026.35.0.pre-release
+- Added solution to workshop assignment week 2.1
+- Added solution to PA 1.8
+- Added solution to PA 2.1
+
 ## 2026-11-10: v2026.34.0.pre-release
 - Added workshop assignment week 2.1
 
