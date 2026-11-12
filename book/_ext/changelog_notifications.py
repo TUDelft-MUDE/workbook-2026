@@ -1,7 +1,8 @@
 """Notify readers when the published changelog changes."""
 
-import hashlib
 import json
+import re
+import subprocess
 from pathlib import Path
 
 from sphinx.errors import ExtensionError
@@ -21,17 +22,37 @@ def write_changelog_fingerprint(app, exception):
     docname = app.config.changelog_notifications_docname
     try:
         source = Path(app.env.doc2path(docname))
-        fingerprint = hashlib.sha256(source.read_bytes()).hexdigest()
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        git = ["git", "--literal-pathspecs", "-C", str(source.parent)]
+        tracked = subprocess.run(
+            [*git, "ls-tree", "--name-only", "HEAD", "--", source.name],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        if not tracked.stdout:
+            raise ExtensionError(f"Document is not tracked in HEAD: {source}")
+        result = subprocess.run(
+            [*git, "log", "-1", "--format=%H", "--", source.name],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        fingerprint = result.stdout.strip()
+        if not re.fullmatch(r"(?:[a-f0-9]{40}|[a-f0-9]{64})", fingerprint):
+            raise ExtensionError(f"No Git commit found for {source}")
         target = app.builder.get_target_uri(docname)
-    except (OSError, KeyError) as error:
+    except (OSError, KeyError, subprocess.CalledProcessError) as error:
+        detail = error.stderr.strip() if isinstance(error, subprocess.CalledProcessError) else str(error)
         raise ExtensionError(
-            f"Cannot prepare changelog notifications for {docname!r}"
+            f"Cannot prepare changelog notifications for {docname!r}: {detail}"
         ) from error
 
     output = Path(app.outdir) / "_static" / "changelog-notifications.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
-        json.dumps({"fingerprint": fingerprint, "url": target}) + "\n",
+        json.dumps({"fingerprint": fingerprint, "scheme": "git-commit", "url": target}) + "\n",
         encoding="utf-8",
     )
 

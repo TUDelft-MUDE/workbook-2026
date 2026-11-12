@@ -75,7 +75,8 @@
     const response = await fetch(manifestUrl, { cache: "no-store" });
     if (!response.ok) throw new Error(`Changelog check failed: HTTP ${response.status}`);
     const manifest = await response.json();
-    if (!/^[a-f0-9]{64}$/.test(manifest.fingerprint) || typeof manifest.url !== "string") {
+    if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(manifest.fingerprint)
+        || manifest.scheme !== "git-commit" || typeof manifest.url !== "string") {
       throw new Error("Invalid changelog fingerprint");
     }
     return manifest;
@@ -87,7 +88,7 @@
       const manifest = await getManifest();
       const state = readState();
       if (!state || Notification.permission !== "granted") return;
-      if (state.fingerprint !== manifest.fingerprint) {
+      if (state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
         const notification = new Notification("Workbook changelog updated", {
           body: "Open the changelog to see what has changed.",
         });
@@ -95,8 +96,10 @@
           window.focus();
           window.location.href = new URL(manifest.url, bookUrl).href;
         };
-        localStorage.setItem(storageKey, JSON.stringify({ fingerprint: manifest.fingerprint }));
       }
+      localStorage.setItem(storageKey, JSON.stringify({
+        fingerprint: manifest.fingerprint, scheme: manifest.scheme,
+      }));
       sessionStorage.setItem(sessionKey, "1");
       render();
     } catch (error) {
@@ -121,7 +124,9 @@
       }
       const manifest = await getManifest();
       sessionStorage.setItem(sessionKey, "1");
-      localStorage.setItem(storageKey, JSON.stringify({ fingerprint: manifest.fingerprint }));
+      localStorage.setItem(storageKey, JSON.stringify({
+        fingerprint: manifest.fingerprint, scheme: manifest.scheme,
+      }));
       render();
     } catch (error) {
       render();

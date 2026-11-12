@@ -8,14 +8,16 @@ const script = fs.readFileSync(
   path.join(__dirname, "../book/_ext/changelog_notifications_static/changelog-notifications.js"),
   "utf8",
 );
-const fingerprint = (character) => character.repeat(64);
+const fingerprint = (character) => character.repeat(40);
 const finishCheck = () => new Promise(setImmediate);
 
 function createPage(options = {}) {
   const values = options.values || new Map();
   const sessionValues = options.sessionValues || new Map();
   const notifications = [];
-  const manifest = options.manifest || { fingerprint: fingerprint("a"), url: "changelog.html" };
+  const manifest = options.manifest || {
+    fingerprint: fingerprint("a"), scheme: "git-commit", url: "changelog.html",
+  };
   let fetchCount = 0;
   const elements = [];
   function element() {
@@ -106,7 +108,7 @@ test("top-bar button switches between opt-in and opt-out", async () => {
 test("checks once per tab session, not on subsequent pages", async () => {
   const first = createPage();
   await first.button.listeners.click();
-  const updated = { fingerprint: fingerprint("b"), url: "changelog.html" };
+  const updated = { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" };
   const nextPage = createPage({
     values: first.values, sessionValues: first.sessionValues, permission: "granted", manifest: updated,
   });
@@ -132,7 +134,7 @@ test("tabs share the last notified fingerprint", async () => {
   await first.button.listeners.click();
   const options = {
     values: first.values, permission: "granted",
-    manifest: { fingerprint: fingerprint("b"), url: "changelog.html" },
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
   };
   const second = createPage(options);
   const third = createPage(options);
@@ -155,7 +157,7 @@ test("denied permission and failed checks do not enable or lose updates", async 
   await enabled.button.listeners.click();
   const options = {
     values: enabled.values, permission: "granted",
-    manifest: { fingerprint: fingerprint("b"), url: "changelog.html" },
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
   };
   const failed = createPage({ ...options, fetchError: true });
   await finishCheck();
@@ -163,4 +165,30 @@ test("denied permission and failed checks do not enable or lose updates", async 
   const retry = createPage({ ...options, sessionValues: failed.sessionValues });
   await finishCheck();
   assert.equal(retry.notifications.length, 1);
+});
+
+test("migrates a legacy content fingerprint without a false notification", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const values = new Map([[key, JSON.stringify({ fingerprint: "a".repeat(64) })]]);
+  const migrated = createPage({ values, permission: "granted" });
+  await finishCheck();
+  assert.equal(migrated.notifications.length, 0);
+  assert.deepEqual(JSON.parse(values.get(key)), {
+    fingerprint: fingerprint("a"), scheme: "git-commit",
+  });
+  const changed = createPage({
+    values, permission: "granted",
+    manifest: { fingerprint: "b".repeat(64), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.equal(changed.notifications.length, 1);
+});
+
+test("rejects malformed commit fingerprints", async () => {
+  const page = createPage({ manifest: {
+    fingerprint: "a".repeat(41), scheme: "git-commit", url: "changelog.html",
+  } });
+  await page.button.listeners.click();
+  assert.equal(page.values.size, 0);
+  assert.match(page.status.textContent, /try again/);
 });

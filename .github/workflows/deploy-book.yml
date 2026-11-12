@@ -354,6 +354,8 @@ jobs:
       run: |
         # Record filenames listing -- this updates the cache on filename change
         find book/ -type f >> EXTRA_CACHE_VARS.txt
+        # A reverted file can have identical contents but a different last commit.
+        git log -1 --format=%H -- book/ >> EXTRA_CACHE_VARS.txt
         # Record if branch is preprocessed
         if [ "$BRANCHES_TO_PREPROCESS" == "*" ] || echo "$BRANCHES_TO_PREPROCESS" | tr ' ' '\n' | grep "^${{ matrix.branch }}$"; then
           echo true >> EXTRA_CACHE_VARS.txt
