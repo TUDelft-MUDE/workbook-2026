@@ -8,13 +8,20 @@ const script = fs.readFileSync(
   path.join(__dirname, "../book/_ext/changelog_notifications_static/changelog-notifications.js"),
   "utf8",
 );
+const workerScript = fs.readFileSync(
+  path.join(__dirname, "../book/_ext/changelog_notifications_static/changelog-notifications-worker.js"),
+  "utf8",
+);
 const fingerprint = (character) => character.repeat(40);
 const finishCheck = () => new Promise(setImmediate);
 
 function createPage(options = {}) {
   const values = options.values || new Map();
   const sessionValues = options.sessionValues || new Map();
-  const notifications = [];
+  const worker = workerNavigator();
+  const notifications = worker.notifications;
+  const navigator = { ...worker.navigator, ...options.navigator };
+  if (options.noServiceWorker) delete navigator.serviceWorker;
   const manifest = options.manifest || {
     fingerprint: fingerprint("a"), scheme: "git-commit", url: "changelog.html",
   };
@@ -76,10 +83,8 @@ function createPage(options = {}) {
       return panel;
     },
   };
-  function Notification(title, notificationOptions) {
-    this.title = title;
-    this.options = notificationOptions;
-    notifications.push(this);
+  function Notification() {
+    throw new Error("Page notifications must not be used");
   }
   Notification.permission = options.permission || "default";
   Notification.requestPermission = async () => {
@@ -90,11 +95,13 @@ function createPage(options = {}) {
   const windowListeners = {};
   const window = {
     Notification,
-    isSecureContext: true,
+    isSecureContext: options.secure !== false,
     location: { href: "" },
     focus() {},
+    matchMedia() { return { matches: Boolean(options.standalone) }; },
     addEventListener(name, callback) { windowListeners[name] = callback; },
   };
+  if (options.noNotification) delete window.Notification;
   function storage(map) {
     return {
       getItem: (key) => map.get(key) || null,
@@ -114,7 +121,7 @@ function createPage(options = {}) {
   };
   vm.runInNewContext(script, {
     document, window, localStorage: storage(values), sessionStorage: storage(sessionValues),
-    Notification, fetch, URL, console: { error() {} },
+    Notification, fetch, URL, navigator, console: { error() {} },
   });
   return {
     panel,
@@ -163,6 +170,81 @@ test("menu item switches between opt-in and opt-out", async () => {
   assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
 });
 
+test("iPhone and iPad browser tabs explain Home Screen setup without offering enable", () => {
+  for (const navigator of [
+    { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)" },
+    { userAgent: "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)" },
+    { userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X)", platform: "MacIntel", maxTouchPoints: 5 },
+  ]) {
+    const first = createPage({ navigator, noNotification: true });
+    assert.equal(first.button.disabled, false);
+    assert.equal(first.toggleButton.hidden, true);
+    assert.equal(first.intro.hidden, true);
+    assert.match(first.status.textContent, /16\.4 or later/);
+    assert.match(first.status.textContent, /Share, then Add to Home Screen/);
+    assert.match(first.status.textContent, /Open as Web App/);
+    assert.equal(first.menu.classList.contains("show"), true);
+    assert.equal(first.permissionRequests, 0);
+    const next = createPage({ navigator, noNotification: true, sessionValues: first.sessionValues });
+    assert.equal(next.menu.classList.contains("show"), false);
+    assert.match(next.status.textContent, /Home Screen web app/);
+    assert.equal(next.button.disabled, false);
+  }
+});
+
+test("Home Screen guidance is not substituted for other notification failures", () => {
+  const ios = { userAgent: "iPhone" };
+  for (const options of [
+    { navigator: { userAgent: "Android" } },
+    { navigator: ios, standalone: true },
+    { navigator: { ...ios, standalone: true } },
+    { navigator: ios, secure: false },
+  ]) {
+    const page = createPage({ ...options, noNotification: true });
+    assert.match(page.status.textContent, /secure connection and a supported browser/);
+    assert.doesNotMatch(page.status.textContent, /Home Screen web app/);
+  }
+  const supported = createPage({ navigator: ios, standalone: true });
+  assert.equal(supported.button.disabled, false);
+  assert.match(supported.toggleLabel.textContent, /Enable notifications/);
+  assert.doesNotMatch(supported.status.textContent || "", /Home Screen web app/);
+});
+
+test("unsupported service workers prevent enabling or checking without losing the saved preference", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const first = createPage({ noServiceWorker: true });
+  assert.equal(first.button.disabled, false);
+  assert.equal(first.toggleButton.hidden, true);
+  assert.match(first.status.textContent, /service workers/);
+  assert.equal(first.permissionRequests, 0);
+  assert.equal(first.fetchCount, 0);
+
+  const stored = JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" });
+  const page = createPage({
+    noServiceWorker: true, permission: "granted", values: new Map([[key, stored]]),
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.equal(page.values.get(key), stored);
+  assert.equal(page.fetchCount, 0);
+  assert.equal(page.toggleButton.hidden, false);
+  assert.equal(page.toggleLabel.textContent, "Disable notifications");
+  await page.toggleButton.listeners.click();
+  assert.equal(page.values.has(key), false);
+  assert.equal(page.toggleButton.hidden, true);
+
+  const iosTab = createPage({ navigator: { userAgent: "iPhone" }, noServiceWorker: true });
+  assert.match(iosTab.status.textContent, /service workers/);
+  assert.doesNotMatch(iosTab.status.textContent, /Home Screen web app/);
+});
+
+test("iPhone guidance remains available when session storage cannot be saved", () => {
+  const page = createPage({ navigator: { userAgent: "iPhone" }, noNotification: true, storageError: true });
+  assert.match(page.status.textContent, /Home Screen web app/);
+  assert.match(page.status.textContent, /storage is unavailable/);
+  assert.equal(page.button.disabled, false);
+});
+
 test("notifies once per tab session; later pages silently refresh the stored commit", async () => {
   const first = createPage();
   await first.toggleButton.listeners.click();
@@ -179,8 +261,7 @@ test("notifies once per tab session; later pages silently refresh the stored com
   await finishCheck();
   assert.equal(newSession.fetchCount, 1);
   assert.equal(newSession.notifications.length, 1);
-  newSession.notifications[0].onclick();
-  assert.equal(newSession.window.location.href, "https://example.org/book/changelog.html");
+  assert.equal(newSession.notifications[0].options.data.url, "https://example.org/book/changelog.html");
   const anotherPage = createPage({
     values: first.values, sessionValues: newSession.sessionValues, permission: "granted", manifest: newer,
   });
@@ -200,9 +281,161 @@ test("tabs share the last notified fingerprint", async () => {
     manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
   };
   const second = createPage(options);
+  await finishCheck();
   const third = createPage(options);
   await finishCheck();
   assert.equal(second.notifications.length + third.notifications.length, 1);
+});
+
+function workerNavigator(options = {}) {
+  const notifications = [];
+  const registration = {
+    active: options.worker || { state: "activated" },
+    async showNotification(title, notificationOptions) {
+      if (options.deliveryError) throw new Error("delivery failed");
+      notifications.push({ title, options: notificationOptions });
+    },
+  };
+  const serviceWorker = {
+    async getRegistrations() { return options.existing || []; },
+    async register(url, registerOptions) {
+      assert.equal(url, "https://example.org/book/_static/changelog-notifications-worker.js");
+      assert.equal(registerOptions.scope, "https://example.org/book/_static/changelog-notifications-worker/");
+      if (options.registrationError) throw new Error("registration failed");
+      return registration;
+    },
+  };
+  return { navigator: { serviceWorker }, notifications };
+}
+
+test("delivers changed changelogs through a narrowly scoped service worker", async () => {
+  const initial = createPage();
+  await initial.toggleButton.listeners.click();
+  const worker = workerNavigator();
+  const page = createPage({
+    ...worker, values: initial.values, permission: "granted",
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changes/" },
+  });
+  await finishCheck();
+  assert.equal(page.notifications.length, 0);
+  assert.equal(worker.notifications.length, 1);
+  assert.equal(worker.notifications[0].title, "Workbook changelog updated");
+  assert.equal(worker.notifications[0].options.body, "Open the changelog to see what has changed.");
+  assert.equal(worker.notifications[0].options.data.url, "https://example.org/book/changes/");
+  assert.equal(JSON.parse(initial.values.get("changelog-notifications:https://example.org/book/")).fingerprint, fingerprint("b"));
+});
+
+test("worker registration, activation and delivery failures preserve updates for retry", async () => {
+  for (const options of [
+    { registrationError: true },
+    { deliveryError: true },
+    { worker: {
+      state: "redundant", addEventListener() {}, removeEventListener() {},
+    } },
+    { existing: [{
+      scope: "https://example.org/book/_static/changelog-notifications-worker/",
+      active: { scriptURL: "https://example.org/book/unrelated-worker.js" },
+    }] },
+  ]) {
+    const initial = createPage();
+    await initial.toggleButton.listeners.click();
+    const stateKey = "changelog-notifications:https://example.org/book/";
+    const manifest = { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" };
+    const failed = createPage({ ...workerNavigator(options), values: initial.values, permission: "granted", manifest });
+    await finishCheck();
+    assert.match(failed.status.textContent, /Could not show the changelog notification.*retry/);
+    assert.equal(JSON.parse(failed.values.get(stateKey)).fingerprint, fingerprint("a"));
+    assert.equal(failed.sessionValues.has(`${stateKey}:checked`), false);
+    const worker = workerNavigator();
+    createPage({ ...worker, values: initial.values, sessionValues: failed.sessionValues, permission: "granted", manifest });
+    await finishCheck();
+    assert.equal(worker.notifications.length, 1);
+  }
+});
+
+test("worker delivery waits for activation and honors disabling while it waits", async () => {
+  let stateChange;
+  const worker = {
+    state: "installing",
+    addEventListener(name, callback) { stateChange = callback; },
+    removeEventListener() {},
+  };
+  const initial = createPage();
+  await initial.toggleButton.listeners.click();
+  const delivery = workerNavigator({ worker });
+  const page = createPage({
+    ...delivery, values: initial.values, permission: "granted",
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.equal(delivery.notifications.length, 0);
+  await page.toggleButton.listeners.click();
+  worker.state = "activated";
+  stateChange();
+  await finishCheck();
+  assert.equal(delivery.notifications.length, 0);
+  assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
+});
+
+test("worker checks use a cross-tab lock when available", async () => {
+  const initial = createPage();
+  await initial.toggleButton.listeners.click();
+  const worker = workerNavigator();
+  let queue = Promise.resolve();
+  worker.navigator.locks = {
+    request(key, callback) {
+      assert.equal(key, "changelog-notifications:https://example.org/book/");
+      queue = queue.then(callback);
+      return queue;
+    },
+  };
+  const options = {
+    ...worker, values: initial.values, permission: "granted",
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  };
+  createPage(options);
+  createPage(options);
+  await finishCheck();
+  assert.equal(worker.notifications.length, 1);
+});
+
+test("worker notification clicks navigate a workbook window or open a new one", async () => {
+  const listeners = {};
+  const opened = [];
+  const navigated = [];
+  let focused = false;
+  let closed = false;
+  let windows = [{
+    url: "https://example.org/book/page.html",
+    async navigate(url) { navigated.push(url); return this; },
+    async focus() { focused = true; },
+  }];
+  const self = {
+    location: { href: "https://example.org/book/_static/changelog-notifications-worker.js" },
+    addEventListener(name, callback) { listeners[name] = callback; },
+    clients: {
+      async matchAll() { return windows; },
+      async openWindow(url) { opened.push(url); },
+    },
+  };
+  vm.runInNewContext(workerScript, { self, URL });
+  async function click(url) {
+    let task;
+    listeners.notificationclick({
+      notification: { data: { url }, close() { closed = true; } },
+      waitUntil(promise) { task = promise; },
+    });
+    return task;
+  }
+  await click("https://example.org/book/changelog.html");
+  assert.equal(closed, true);
+  assert.deepEqual(navigated, ["https://example.org/book/changelog.html"]);
+  assert.equal(focused, true);
+  windows = [{ url: "https://example.org/another-book/page.html" }];
+  await click("https://example.org/book/changelog/");
+  assert.deepEqual(opened, ["https://example.org/book/changelog/"]);
+  await assert.rejects(click("https://elsewhere.example/changelog.html"), /Invalid changelog/);
+  await assert.rejects(click("https://example.org/book-other/changelog.html"), /Invalid changelog/);
 });
 
 test("denied permission and failed checks do not enable or lose updates", async () => {
