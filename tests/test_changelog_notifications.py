@@ -91,6 +91,7 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertTrue((output / "_static" / "changelog-notifications.css").is_file())
                 self.assertTrue((output / "_static" / "changelog-notifications-worker.js").is_file())
                 html = (output / "index.html").read_text(encoding="utf-8")
+                self.assertIn('<meta name="apple-mobile-web-app-capable" content="yes" />', html)
                 self.assertIn("changelog-notifications.js", html)
                 left_header, right_header = html.split('<div class="header-article-items__start">', 1)[1].split(
                     '<div class="header-article-items__end">', 1
@@ -166,6 +167,20 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Document is not tracked in HEAD", result.stderr)
+
+    def test_existing_ios_web_app_metadata_is_preserved(self):
+        sys.path.insert(0, str(EXTENSIONS))
+        try:
+            from changelog_notifications import add_ios_web_app_metadata
+        finally:
+            sys.path.pop(0)
+        for tag in (
+            "<meta name='apple-mobile-web-app-capable' content='no'>",
+            "<META content=no name=apple-mobile-web-app-capable>",
+        ):
+            context = {"metatags": tag}
+            add_ios_web_app_metadata(None, None, None, context, None)
+            self.assertEqual(context["metatags"], tag)
 
 
 if __name__ == "__main__":

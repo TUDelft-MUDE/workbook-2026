@@ -94,11 +94,13 @@ function createPage(options = {}) {
   const windowListeners = {};
   const window = {
     Notification,
-    isSecureContext: true,
+    isSecureContext: options.secure !== false,
     location: { href: "" },
     focus() {},
+    matchMedia() { return { matches: Boolean(options.standalone) }; },
     addEventListener(name, callback) { windowListeners[name] = callback; },
   };
+  if (options.noNotification) delete window.Notification;
   function storage(map) {
     return {
       getItem: (key) => map.get(key) || null,
@@ -165,6 +167,53 @@ test("menu item switches between opt-in and opt-out", async () => {
   assert.equal(page.values.has("changelog-notifications:https://example.org/book/"), false);
   assert.equal(page.toggleLabel.textContent, "Enable notifications");
   assert.equal(page.toggleIcon.children[0].className, "fa-solid fa-bell");
+});
+
+test("iPhone and iPad browser tabs explain Home Screen setup without offering enable", () => {
+  for (const navigator of [
+    { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)" },
+    { userAgent: "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)" },
+    { userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X)", platform: "MacIntel", maxTouchPoints: 5 },
+  ]) {
+    const first = createPage({ navigator, noNotification: true });
+    assert.equal(first.button.disabled, false);
+    assert.equal(first.toggleButton.hidden, true);
+    assert.equal(first.intro.hidden, true);
+    assert.match(first.status.textContent, /16\.4 or later/);
+    assert.match(first.status.textContent, /Share, then Add to Home Screen/);
+    assert.match(first.status.textContent, /Open as Web App/);
+    assert.equal(first.menu.classList.contains("show"), true);
+    assert.equal(first.permissionRequests, 0);
+    const next = createPage({ navigator, noNotification: true, sessionValues: first.sessionValues });
+    assert.equal(next.menu.classList.contains("show"), false);
+    assert.match(next.status.textContent, /Home Screen web app/);
+    assert.equal(next.button.disabled, false);
+  }
+});
+
+test("Home Screen guidance is not substituted for other notification failures", () => {
+  const ios = { userAgent: "iPhone" };
+  for (const options of [
+    { navigator: { userAgent: "Android" } },
+    { navigator: ios, standalone: true },
+    { navigator: { ...ios, standalone: true } },
+    { navigator: ios, secure: false },
+  ]) {
+    const page = createPage({ ...options, noNotification: true });
+    assert.match(page.status.textContent, /secure connection and a supported browser/);
+    assert.doesNotMatch(page.status.textContent, /Home Screen web app/);
+  }
+  const supported = createPage({ navigator: ios, standalone: true });
+  assert.equal(supported.button.disabled, false);
+  assert.match(supported.toggleLabel.textContent, /Enable notifications/);
+  assert.doesNotMatch(supported.status.textContent || "", /Home Screen web app/);
+});
+
+test("iPhone guidance remains available when session storage cannot be saved", () => {
+  const page = createPage({ navigator: { userAgent: "iPhone" }, noNotification: true, storageError: true });
+  assert.match(page.status.textContent, /Home Screen web app/);
+  assert.match(page.status.textContent, /storage is unavailable/);
+  assert.equal(page.button.disabled, false);
 });
 
 test("notifies once per tab session; later pages silently refresh the stored commit", async () => {

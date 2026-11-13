@@ -76,9 +76,36 @@
     return state;
   }
 
+  function isIosBrowserTab() {
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "")
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone = navigator.standalone === true
+      || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    return ios && !standalone;
+  }
+
   function render({ initial = false, showBlocked = false } = {}) {
     if (!window.isSecureContext || !("Notification" in window)) {
       showIntro(false);
+      if (window.isSecureContext && isIosBrowserTab()) {
+        button.disabled = false;
+        toggleButton.hidden = true;
+        setLabel("Changelog notification settings");
+        setIcon(button, false);
+        setStatus("On iPhone or iPad, notifications require iOS or iPadOS 16.4 or later and a Home Screen web app. In Safari, tap Share, then Add to Home Screen; turn on Open as Web App if offered. Open the app from your Home Screen, then enable notifications there.");
+        if (initial) {
+          try {
+            const firstPage = !sessionStorage.getItem(visitedKey);
+            sessionStorage.setItem(visitedKey, "1");
+            if (firstPage) showMenu(true);
+          } catch (error) {
+            setStatus(`${status.textContent} Browser storage is unavailable, so this message may appear again.`);
+            showMenu(true);
+            console.error("Could not save changelog notification visit:", error);
+          }
+        }
+        return;
+      }
       button.disabled = true;
       setLabel("Changelog notifications unavailable");
       setIcon(button, false);
@@ -100,6 +127,7 @@
         && Notification.permission !== "denied";
       showIntro(showPrompt);
       button.disabled = false;
+      toggleButton.hidden = false;
       toggleButton.disabled = false;
       setLabel("Changelog notification settings");
       toggleLabel.textContent = state ? "Disable notifications" : "Enable notifications";
