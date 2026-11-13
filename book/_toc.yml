@@ -145,6 +145,8 @@ parts:
     - file: assignments/GA2.1/README.md
       sections:
       - file: assignments/GA2.1/grp09.ipynb
+        sections:
+        - file: convert_files/advdiff.md
     #  - file: assignments/GA2.1/report.md
 
 - caption: Miscellaneous
