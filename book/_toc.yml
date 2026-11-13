@@ -155,6 +155,9 @@ parts:
     - file: assignments/PA2.2/README.md
       sections:
       - file: assignments/PA2.1/PA_2_2_sparse_v_dense.ipynb
+        sections:
+        - file: convert_files/mesh_utils.md
+        - file: convert_files/benchmark_operations.md
 
 - caption: Miscellaneous
   chapters:
