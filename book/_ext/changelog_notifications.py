@@ -15,6 +15,18 @@ def add_static_path(app):
         )
 
 
+def add_ios_web_app_metadata(app, pagename, templatename, context, doctree):
+    metatags = context.get("metatags", "")
+    if not re.search(
+        r'<meta\b[^>]*\bname\s*=\s*(?:["\']apple-mobile-web-app-capable["\']|apple-mobile-web-app-capable(?=[\s/>]))',
+        metatags,
+        re.IGNORECASE,
+    ):
+        context["metatags"] = (
+            metatags + '\n<meta name="apple-mobile-web-app-capable" content="yes" />'
+        )
+
+
 def write_changelog_fingerprint(app, exception):
     if exception is not None or app.builder.format != "html":
         return
@@ -65,5 +77,6 @@ def setup(app):
     app.add_js_file("changelog-notifications.js", defer="defer")
     app.add_css_file("changelog-notifications.css")
     app.connect("builder-inited", add_static_path)
+    app.connect("html-page-context", add_ios_web_app_metadata)
     app.connect("build-finished", write_changelog_fingerprint)
     return {"version": "1.0", "parallel_read_safe": True, "parallel_write_safe": True}

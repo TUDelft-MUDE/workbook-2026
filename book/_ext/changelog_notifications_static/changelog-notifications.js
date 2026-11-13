@@ -3,6 +3,8 @@
 
   const script = document.currentScript;
   const manifestUrl = new URL("changelog-notifications.json", script.src);
+  const workerUrl = new URL("changelog-notifications-worker.js", script.src);
+  const workerScope = new URL("changelog-notifications-worker/", script.src);
   const bookUrl = new URL("../", script.src);
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
@@ -74,13 +76,53 @@
     return state;
   }
 
+  function isIosBrowserTab() {
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "")
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone = navigator.standalone === true
+      || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    return ios && !standalone;
+  }
+
   function render({ initial = false, showBlocked = false } = {}) {
-    if (!window.isSecureContext || !("Notification" in window)) {
+    if (!window.isSecureContext || !("Notification" in window) || !("serviceWorker" in navigator)) {
       showIntro(false);
-      button.disabled = true;
+      if (window.isSecureContext && !("Notification" in window) && isIosBrowserTab()) {
+        button.disabled = false;
+        toggleButton.hidden = true;
+        setLabel("Changelog notification settings");
+        setIcon(button, false);
+        setStatus("On iPhone or iPad, notifications require iOS or iPadOS 16.4 or later and a Home Screen web app. In Safari, tap Share, then Add to Home Screen; turn on Open as Web App if offered. Open the app from your Home Screen, then enable notifications there.");
+        if (initial) {
+          try {
+            const firstPage = !sessionStorage.getItem(visitedKey);
+            sessionStorage.setItem(visitedKey, "1");
+            if (firstPage) showMenu(true);
+          } catch (error) {
+            setStatus(`${status.textContent} Browser storage is unavailable, so this message may appear again.`);
+            showMenu(true);
+            console.error("Could not save changelog notification visit:", error);
+          }
+        }
+        return;
+      }
+      button.disabled = false;
+      toggleButton.hidden = true;
       setLabel("Changelog notifications unavailable");
       setIcon(button, false);
-      setStatus("Notifications require a secure connection and a supported browser.");
+      setStatus("Notifications require a secure connection and a supported browser with service workers.");
+      try {
+        if (readState()) {
+          toggleButton.hidden = false;
+          toggleButton.disabled = false;
+          toggleLabel.textContent = "Disable notifications";
+          toggleButton.setAttribute("aria-pressed", "true");
+          setIcon(toggleIcon, false);
+        }
+      } catch (error) {
+        setStatus(`${status.textContent} Browser storage is unavailable.`);
+        console.error("Could not read changelog notification settings:", error);
+      }
       showMenu(true);
       return;
     }
@@ -98,6 +140,7 @@
         && Notification.permission !== "denied";
       showIntro(showPrompt);
       button.disabled = false;
+      toggleButton.hidden = false;
       toggleButton.disabled = false;
       setLabel("Changelog notification settings");
       toggleLabel.textContent = state ? "Disable notifications" : "Enable notifications";
@@ -137,23 +180,64 @@
     return manifest;
   }
 
+  async function notify(manifest) {
+    const title = "Workbook changelog updated";
+    const body = "Open the changelog to see what has changed.";
+    const target = new URL(manifest.url, bookUrl);
+    if (target.origin !== bookUrl.origin || !target.pathname.startsWith(bookUrl.pathname)) {
+      throw new Error("Invalid changelog notification URL");
+    }
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    const existing = registrations.find((registration) => registration.scope === workerScope.href);
+    if (existing && [existing.active, existing.waiting, existing.installing]
+      .some((worker) => worker && worker.scriptURL !== workerUrl.href)) {
+      throw new Error("Changelog notification worker scope is already in use");
+    }
+    const registration = await navigator.serviceWorker.register(workerUrl.href, {
+      scope: workerScope.href,
+    });
+    const worker = registration.active || registration.installing || registration.waiting;
+    if (!worker) throw new Error("Changelog notification worker is unavailable");
+    if (worker.state !== "activated") {
+      await new Promise((resolve, reject) => {
+        function stateChanged() {
+          if (worker.state === "activated") {
+            worker.removeEventListener("statechange", stateChanged);
+            resolve();
+          } else if (worker.state === "redundant") {
+            worker.removeEventListener("statechange", stateChanged);
+            reject(new Error("Changelog notification worker failed to activate"));
+          }
+        }
+        worker.addEventListener("statechange", stateChanged);
+        stateChanged();
+      });
+    }
+    const state = readState();
+    if (!state || Notification.permission !== "granted" || state.scheme !== manifest.scheme
+      || state.fingerprint === manifest.fingerprint) return;
+    await registration.showNotification(title, {
+      body, data: { url: target.href }, tag: `${storageKey}:${manifest.fingerprint}`,
+    });
+  }
+
   // The first page of a tab session may notify; later pages only refresh the
   // stored commit, since the reader is already seeing the current content.
   async function check() {
     const alreadyChecked = Boolean(sessionStorage.getItem(sessionKey));
+    let delivering = false;
     try {
       if (!readState() || Notification.permission !== "granted") return;
       const manifest = await getManifest();
       const state = readState();
       if (!state || Notification.permission !== "granted") return;
       if (!alreadyChecked && state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
-        const notification = new Notification("Workbook changelog updated", {
-          body: "Open the changelog to see what has changed.",
-        });
-        notification.onclick = () => {
-          window.focus();
-          window.location.href = new URL(manifest.url, bookUrl).href;
-        };
+        delivering = true;
+        await notify(manifest);
+        delivering = false;
+        const current = readState();
+        if (!current || Notification.permission !== "granted" || current.fingerprint !== state.fingerprint
+          || current.scheme !== state.scheme) return;
       }
       localStorage.setItem(storageKey, JSON.stringify({
         fingerprint: manifest.fingerprint, scheme: manifest.scheme,
@@ -162,7 +246,9 @@
       render();
     } catch (error) {
       if (alreadyChecked) return;
-      setStatus("Could not check the changelog; navigating to another page will retry.");
+      setStatus(delivering
+        ? "Could not show the changelog notification; navigating to another page will retry."
+        : "Could not check the changelog; navigating to another page will retry.");
       showMenu(true);
       console.error("Could not check changelog notifications:", error);
     }
@@ -239,7 +325,15 @@
     if (event.key === storageKey || event.key === introKey || event.key === null) render();
   });
   render({ initial: true });
-  if (window.isSecureContext && "Notification" in window) {
-    check();
+  if (window.isSecureContext && "Notification" in window && "serviceWorker" in navigator) {
+    if (navigator.locks) {
+      navigator.locks.request(storageKey, check).catch((error) => {
+        setStatus("Could not check the changelog; navigating to another page will retry.");
+        showMenu(true);
+        console.error("Could not lock changelog notification settings:", error);
+      });
+    } else {
+      check();
+    }
   }
 })();

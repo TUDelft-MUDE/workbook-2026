@@ -98,6 +98,7 @@
 }
 
 .changelog-notifications-status[hidden],
-.changelog-notifications-intro[hidden] {
+.changelog-notifications-intro[hidden],
+.changelog-notifications-toggle[hidden] {
   display: none;
 }
