@@ -89,6 +89,7 @@ class ChangelogNotificationsBuildTest(unittest.TestCase):
                 self.assertEqual(first["scheme"], "git-commit")
                 self.assertTrue((output / "_static" / "changelog-notifications.js").is_file())
                 self.assertTrue((output / "_static" / "changelog-notifications.css").is_file())
+                self.assertTrue((output / "_static" / "changelog-notifications-worker.js").is_file())
                 html = (output / "index.html").read_text(encoding="utf-8")
                 self.assertIn("changelog-notifications.js", html)
                 left_header, right_header = html.split('<div class="header-article-items__start">', 1)[1].split(

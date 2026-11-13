@@ -3,6 +3,8 @@
 
   const script = document.currentScript;
   const manifestUrl = new URL("changelog-notifications.json", script.src);
+  const workerUrl = new URL("changelog-notifications-worker.js", script.src);
+  const workerScope = new URL("changelog-notifications-worker/", script.src);
   const bookUrl = new URL("../", script.src);
   const storageKey = `changelog-notifications:${bookUrl.href}`;
   const sessionKey = `${storageKey}:checked`;
@@ -137,23 +139,79 @@
     return manifest;
   }
 
+  function notify(manifest) {
+    const title = "Workbook changelog updated";
+    const body = "Open the changelog to see what has changed.";
+    const target = new URL(manifest.url, bookUrl);
+    if (target.origin !== bookUrl.origin || !target.pathname.startsWith(bookUrl.pathname)) {
+      throw new Error("Invalid changelog notification URL");
+    }
+    const url = target.href;
+    if (!("serviceWorker" in navigator)) {
+      const notification = new Notification(title, { body });
+      notification.onclick = () => {
+        window.focus();
+        window.location.href = url;
+      };
+      return;
+    }
+
+    return notifyWithWorker(manifest, title, body, url);
+  }
+
+  async function notifyWithWorker(manifest, title, body, url) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    const existing = registrations.find((registration) => registration.scope === workerScope.href);
+    if (existing && [existing.active, existing.waiting, existing.installing]
+      .some((worker) => worker && worker.scriptURL !== workerUrl.href)) {
+      throw new Error("Changelog notification worker scope is already in use");
+    }
+    const registration = await navigator.serviceWorker.register(workerUrl.href, {
+      scope: workerScope.href,
+    });
+    const worker = registration.active || registration.installing || registration.waiting;
+    if (!worker) throw new Error("Changelog notification worker is unavailable");
+    if (worker.state !== "activated") {
+      await new Promise((resolve, reject) => {
+        function stateChanged() {
+          if (worker.state === "activated") {
+            worker.removeEventListener("statechange", stateChanged);
+            resolve();
+          } else if (worker.state === "redundant") {
+            worker.removeEventListener("statechange", stateChanged);
+            reject(new Error("Changelog notification worker failed to activate"));
+          }
+        }
+        worker.addEventListener("statechange", stateChanged);
+        stateChanged();
+      });
+    }
+    const state = readState();
+    if (!state || Notification.permission !== "granted" || state.scheme !== manifest.scheme
+      || state.fingerprint === manifest.fingerprint) return;
+    await registration.showNotification(title, {
+      body, data: { url }, tag: `${storageKey}:${manifest.fingerprint}`,
+    });
+  }
+
   // The first page of a tab session may notify; later pages only refresh the
   // stored commit, since the reader is already seeing the current content.
   async function check() {
     const alreadyChecked = Boolean(sessionStorage.getItem(sessionKey));
+    let delivering = false;
     try {
       if (!readState() || Notification.permission !== "granted") return;
       const manifest = await getManifest();
       const state = readState();
       if (!state || Notification.permission !== "granted") return;
       if (!alreadyChecked && state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
-        const notification = new Notification("Workbook changelog updated", {
-          body: "Open the changelog to see what has changed.",
-        });
-        notification.onclick = () => {
-          window.focus();
-          window.location.href = new URL(manifest.url, bookUrl).href;
-        };
+        delivering = true;
+        const delivery = notify(manifest);
+        if (delivery) await delivery;
+        delivering = false;
+        const current = readState();
+        if (!current || Notification.permission !== "granted" || current.fingerprint !== state.fingerprint
+          || current.scheme !== state.scheme) return;
       }
       localStorage.setItem(storageKey, JSON.stringify({
         fingerprint: manifest.fingerprint, scheme: manifest.scheme,
@@ -162,7 +220,9 @@
       render();
     } catch (error) {
       if (alreadyChecked) return;
-      setStatus("Could not check the changelog; navigating to another page will retry.");
+      setStatus(delivering
+        ? "Could not show the changelog notification; navigating to another page will retry."
+        : "Could not check the changelog; navigating to another page will retry.");
       showMenu(true);
       console.error("Could not check changelog notifications:", error);
     }
@@ -240,6 +300,14 @@
   });
   render({ initial: true });
   if (window.isSecureContext && "Notification" in window) {
-    check();
+    if (navigator.locks) {
+      navigator.locks.request(storageKey, check).catch((error) => {
+        setStatus("Could not check the changelog; navigating to another page will retry.");
+        showMenu(true);
+        console.error("Could not lock changelog notification settings:", error);
+      });
+    } else {
+      check();
+    }
   }
 })();
