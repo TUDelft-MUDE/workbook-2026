@@ -18,7 +18,10 @@ const finishCheck = () => new Promise(setImmediate);
 function createPage(options = {}) {
   const values = options.values || new Map();
   const sessionValues = options.sessionValues || new Map();
-  const notifications = [];
+  const worker = workerNavigator();
+  const notifications = worker.notifications;
+  const navigator = { ...worker.navigator, ...options.navigator };
+  if (options.noServiceWorker) delete navigator.serviceWorker;
   const manifest = options.manifest || {
     fingerprint: fingerprint("a"), scheme: "git-commit", url: "changelog.html",
   };
@@ -80,10 +83,8 @@ function createPage(options = {}) {
       return panel;
     },
   };
-  function Notification(title, notificationOptions) {
-    this.title = title;
-    this.options = notificationOptions;
-    notifications.push(this);
+  function Notification() {
+    throw new Error("Page notifications must not be used");
   }
   Notification.permission = options.permission || "default";
   Notification.requestPermission = async () => {
@@ -120,7 +121,7 @@ function createPage(options = {}) {
   };
   vm.runInNewContext(script, {
     document, window, localStorage: storage(values), sessionStorage: storage(sessionValues),
-    Notification, fetch, URL, navigator: options.navigator || {}, console: { error() {} },
+    Notification, fetch, URL, navigator, console: { error() {} },
   });
   return {
     panel,
@@ -209,6 +210,34 @@ test("Home Screen guidance is not substituted for other notification failures", 
   assert.doesNotMatch(supported.status.textContent || "", /Home Screen web app/);
 });
 
+test("unsupported service workers prevent enabling or checking without losing the saved preference", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const first = createPage({ noServiceWorker: true });
+  assert.equal(first.button.disabled, false);
+  assert.equal(first.toggleButton.hidden, true);
+  assert.match(first.status.textContent, /service workers/);
+  assert.equal(first.permissionRequests, 0);
+  assert.equal(first.fetchCount, 0);
+
+  const stored = JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" });
+  const page = createPage({
+    noServiceWorker: true, permission: "granted", values: new Map([[key, stored]]),
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.equal(page.values.get(key), stored);
+  assert.equal(page.fetchCount, 0);
+  assert.equal(page.toggleButton.hidden, false);
+  assert.equal(page.toggleLabel.textContent, "Disable notifications");
+  await page.toggleButton.listeners.click();
+  assert.equal(page.values.has(key), false);
+  assert.equal(page.toggleButton.hidden, true);
+
+  const iosTab = createPage({ navigator: { userAgent: "iPhone" }, noServiceWorker: true });
+  assert.match(iosTab.status.textContent, /service workers/);
+  assert.doesNotMatch(iosTab.status.textContent, /Home Screen web app/);
+});
+
 test("iPhone guidance remains available when session storage cannot be saved", () => {
   const page = createPage({ navigator: { userAgent: "iPhone" }, noNotification: true, storageError: true });
   assert.match(page.status.textContent, /Home Screen web app/);
@@ -232,8 +261,7 @@ test("notifies once per tab session; later pages silently refresh the stored com
   await finishCheck();
   assert.equal(newSession.fetchCount, 1);
   assert.equal(newSession.notifications.length, 1);
-  newSession.notifications[0].onclick();
-  assert.equal(newSession.window.location.href, "https://example.org/book/changelog.html");
+  assert.equal(newSession.notifications[0].options.data.url, "https://example.org/book/changelog.html");
   const anotherPage = createPage({
     values: first.values, sessionValues: newSession.sessionValues, permission: "granted", manifest: newer,
   });
@@ -253,6 +281,7 @@ test("tabs share the last notified fingerprint", async () => {
     manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
   };
   const second = createPage(options);
+  await finishCheck();
   const third = createPage(options);
   await finishCheck();
   assert.equal(second.notifications.length + third.notifications.length, 1);

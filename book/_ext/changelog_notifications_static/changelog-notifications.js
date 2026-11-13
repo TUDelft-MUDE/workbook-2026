@@ -85,9 +85,9 @@
   }
 
   function render({ initial = false, showBlocked = false } = {}) {
-    if (!window.isSecureContext || !("Notification" in window)) {
+    if (!window.isSecureContext || !("Notification" in window) || !("serviceWorker" in navigator)) {
       showIntro(false);
-      if (window.isSecureContext && isIosBrowserTab()) {
+      if (window.isSecureContext && !("Notification" in window) && isIosBrowserTab()) {
         button.disabled = false;
         toggleButton.hidden = true;
         setLabel("Changelog notification settings");
@@ -106,10 +106,23 @@
         }
         return;
       }
-      button.disabled = true;
+      button.disabled = false;
+      toggleButton.hidden = true;
       setLabel("Changelog notifications unavailable");
       setIcon(button, false);
-      setStatus("Notifications require a secure connection and a supported browser.");
+      setStatus("Notifications require a secure connection and a supported browser with service workers.");
+      try {
+        if (readState()) {
+          toggleButton.hidden = false;
+          toggleButton.disabled = false;
+          toggleLabel.textContent = "Disable notifications";
+          toggleButton.setAttribute("aria-pressed", "true");
+          setIcon(toggleIcon, false);
+        }
+      } catch (error) {
+        setStatus(`${status.textContent} Browser storage is unavailable.`);
+        console.error("Could not read changelog notification settings:", error);
+      }
       showMenu(true);
       return;
     }
@@ -167,27 +180,13 @@
     return manifest;
   }
 
-  function notify(manifest) {
+  async function notify(manifest) {
     const title = "Workbook changelog updated";
     const body = "Open the changelog to see what has changed.";
     const target = new URL(manifest.url, bookUrl);
     if (target.origin !== bookUrl.origin || !target.pathname.startsWith(bookUrl.pathname)) {
       throw new Error("Invalid changelog notification URL");
     }
-    const url = target.href;
-    if (!("serviceWorker" in navigator)) {
-      const notification = new Notification(title, { body });
-      notification.onclick = () => {
-        window.focus();
-        window.location.href = url;
-      };
-      return;
-    }
-
-    return notifyWithWorker(manifest, title, body, url);
-  }
-
-  async function notifyWithWorker(manifest, title, body, url) {
     const registrations = await navigator.serviceWorker.getRegistrations();
     const existing = registrations.find((registration) => registration.scope === workerScope.href);
     if (existing && [existing.active, existing.waiting, existing.installing]
@@ -218,7 +217,7 @@
     if (!state || Notification.permission !== "granted" || state.scheme !== manifest.scheme
       || state.fingerprint === manifest.fingerprint) return;
     await registration.showNotification(title, {
-      body, data: { url }, tag: `${storageKey}:${manifest.fingerprint}`,
+      body, data: { url: target.href }, tag: `${storageKey}:${manifest.fingerprint}`,
     });
   }
 
@@ -234,8 +233,7 @@
       if (!state || Notification.permission !== "granted") return;
       if (!alreadyChecked && state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
         delivering = true;
-        const delivery = notify(manifest);
-        if (delivery) await delivery;
+        await notify(manifest);
         delivering = false;
         const current = readState();
         if (!current || Notification.permission !== "granted" || current.fingerprint !== state.fingerprint
@@ -327,7 +325,7 @@
     if (event.key === storageKey || event.key === introKey || event.key === null) render();
   });
   render({ initial: true });
-  if (window.isSecureContext && "Notification" in window) {
+  if (window.isSecureContext && "Notification" in window && "serviceWorker" in navigator) {
     if (navigator.locks) {
       navigator.locks.request(storageKey, check).catch((error) => {
         setStatus("Could not check the changelog; navigating to another page will retry.");
