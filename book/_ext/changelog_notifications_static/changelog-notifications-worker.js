@@ -14,17 +14,11 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const workbook = windows.find((client) => {
-      const url = new URL(client.url);
-      return url.origin === bookUrl.origin && url.pathname.startsWith(bookUrl.pathname);
-    });
-    if (workbook) {
-      const navigated = await workbook.navigate(target.href);
-      if (navigated) {
-        await navigated.focus();
-        return;
-      }
+    const changelog = windows.find((client) => client.url === target.href);
+    if (changelog) {
+      await changelog.focus();
+    } else {
+      await self.clients.openWindow(target.href);
     }
-    await self.clients.openWindow(target.href);
   })());
 });

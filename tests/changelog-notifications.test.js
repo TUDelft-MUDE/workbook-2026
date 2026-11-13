@@ -399,15 +399,13 @@ test("worker checks use a cross-tab lock when available", async () => {
   assert.equal(worker.notifications.length, 1);
 });
 
-test("worker notification clicks navigate a workbook window or open a new one", async () => {
+test("worker notification clicks open the changelog or focus an existing changelog", async () => {
   const listeners = {};
   const opened = [];
-  const navigated = [];
   let focused = false;
   let closed = false;
   let windows = [{
     url: "https://example.org/book/page.html",
-    async navigate(url) { navigated.push(url); return this; },
     async focus() { focused = true; },
   }];
   const self = {
@@ -429,11 +427,18 @@ test("worker notification clicks navigate a workbook window or open a new one", 
   }
   await click("https://example.org/book/changelog.html");
   assert.equal(closed, true);
-  assert.deepEqual(navigated, ["https://example.org/book/changelog.html"]);
+  assert.deepEqual(opened, ["https://example.org/book/changelog.html"]);
+  assert.equal(focused, false);
+  windows = [{
+    url: "https://example.org/book/changelog.html",
+    async focus() { focused = true; },
+  }];
+  await click("https://example.org/book/changelog.html");
   assert.equal(focused, true);
+  assert.equal(opened.length, 1);
   windows = [{ url: "https://example.org/another-book/page.html" }];
   await click("https://example.org/book/changelog/");
-  assert.deepEqual(opened, ["https://example.org/book/changelog/"]);
+  assert.deepEqual(opened, ["https://example.org/book/changelog.html", "https://example.org/book/changelog/"]);
   await assert.rejects(click("https://elsewhere.example/changelog.html"), /Invalid changelog/);
   await assert.rejects(click("https://example.org/book-other/changelog.html"), /Invalid changelog/);
 });
