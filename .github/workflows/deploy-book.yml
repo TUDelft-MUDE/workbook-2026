@@ -2,8 +2,8 @@ name: deploy-book
 
 on:
   push:
-    branches-ignore:
-    - 'no_solutions'
+    branches:
+    - 'release'
     # If your git repository has the Jupyter Book within some-subfolder next to
     # unrelated files, you can make this run only if a file within that specific
     # folder (or the workflow file itself) has been modified.
@@ -81,7 +81,7 @@ env:
 jobs:
   update-submodules:
     if: >-
-      github.ref != 'refs/heads/no_solutions' &&
+      github.ref == 'refs/heads/release' &&
       (github.event_name == 'workflow_dispatch' ||
       !contains(github.event.head_commit.message, '[skip deploy-book]'))
     name: Update submodules
@@ -121,29 +121,27 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Update submodules for current branch
+      - name: Update submodules for release
         run: |
-          # Fetch all branches and ensure we have the target branch
+          # Fetch all branches and ensure we have the release branch
           git fetch --all
-          # Checkout and reset to the branch that triggered this workflow
-          git checkout "$GITHUB_REF_NAME"
-          git reset --hard "origin/$GITHUB_REF_NAME"
+          git checkout release
+          git reset --hard origin/release
 
           # Update all submodules to follow their configured branch (if set in .gitmodules)
-          git submodule update --init --recursive --remote || true
+          git submodule update --init --recursive --remote
           echo "Submodule updates complete"
 
           # If there are changes (updated submodule SHAs), commit them
           if [ -n "$(git status --porcelain)" ]; then
             git add .
-            git commit -m "Update submodules according to .gitmodules [skip deploy-book]" || echo "Nothing to commit"
-            git push origin "$GITHUB_REF_NAME" || true
+            git commit -m "Update submodules according to .gitmodules [skip deploy-book]"
+            git push origin release
           else
             echo "No changes to submodules"
           fi
 
       - name: Update submodules for no_solutions
-        if: ${{ github.ref == 'refs/heads/release' }}
         run: |
           # Fetch all branches and ensure we have the target branch
           git fetch --all
