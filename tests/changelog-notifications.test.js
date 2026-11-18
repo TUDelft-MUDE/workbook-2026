@@ -289,8 +289,15 @@ test("tabs share the last notified fingerprint", async () => {
 
 function workerNavigator(options = {}) {
   const notifications = [];
+  let registrations = 0;
+  let updates = 0;
   const registration = {
     active: options.worker || { state: "activated" },
+    installing: options.installing,
+    async update() {
+      updates++;
+      if (options.updateError) throw new Error("update failed");
+    },
     async showNotification(title, notificationOptions) {
       if (options.deliveryError) throw new Error("delivery failed");
       notifications.push({ title, options: notificationOptions });
@@ -299,14 +306,76 @@ function workerNavigator(options = {}) {
   const serviceWorker = {
     async getRegistrations() { return options.existing || []; },
     async register(url, registerOptions) {
+      registrations++;
       assert.equal(url, "https://example.org/book/_static/changelog-notifications-worker.js");
       assert.equal(registerOptions.scope, "https://example.org/book/_static/changelog-notifications-worker/");
       if (options.registrationError) throw new Error("registration failed");
       return registration;
     },
   };
-  return { navigator: { serviceWorker }, notifications };
+  return {
+    navigator: { serviceWorker }, notifications,
+    get registrations() { return registrations; },
+    get updates() { return updates; },
+  };
 }
+
+test("refreshes the worker for existing subscribers even when the changelog has not changed", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const values = new Map([[key, JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" })]]);
+  const worker = workerNavigator();
+  const page = createPage({
+    ...worker, values, permission: "granted",
+    sessionValues: new Map([[`${key}:checked`, "1"]]),
+  });
+  await finishCheck();
+  assert.equal(worker.registrations, 1);
+  assert.equal(worker.updates, 1);
+  assert.equal(worker.notifications.length, 0);
+  assert.equal(JSON.parse(page.values.get(key)).fingerprint, fingerprint("a"));
+
+  const visitor = workerNavigator();
+  createPage({ ...visitor });
+  await finishCheck();
+  assert.equal(visitor.registrations, 0);
+});
+
+test("waits for the updated worker instead of using an old active worker", async () => {
+  let stateChange;
+  const installing = {
+    state: "installing",
+    addEventListener(name, callback) { stateChange = callback; },
+    removeEventListener() {},
+  };
+  const key = "changelog-notifications:https://example.org/book/";
+  const values = new Map([[key, JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" })]]);
+  const worker = workerNavigator({ installing });
+  createPage({
+    ...worker, values, permission: "granted",
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.equal(worker.notifications.length, 0);
+  assert.equal(JSON.parse(values.get(key)).fingerprint, fingerprint("a"));
+  installing.state = "activated";
+  stateChange();
+  await finishCheck();
+  assert.equal(worker.notifications.length, 1);
+});
+
+test("reports worker refresh failures on later pages without changing the saved fingerprint", async () => {
+  const key = "changelog-notifications:https://example.org/book/";
+  const saved = JSON.stringify({ fingerprint: fingerprint("a"), scheme: "git-commit" });
+  const page = createPage({
+    ...workerNavigator({ updateError: true }), values: new Map([[key, saved]]), permission: "granted",
+    sessionValues: new Map([[`${key}:checked`, "1"]]),
+    manifest: { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" },
+  });
+  await finishCheck();
+  assert.match(page.status.textContent, /Could not update the notification service.*retry/);
+  assert.equal(page.values.get(key), saved);
+  assert.equal(page.fetchCount, 0);
+});
 
 test("delivers changed changelogs through a narrowly scoped service worker", async () => {
   const initial = createPage();
@@ -328,6 +397,7 @@ test("delivers changed changelogs through a narrowly scoped service worker", asy
 test("worker registration, activation and delivery failures preserve updates for retry", async () => {
   for (const options of [
     { registrationError: true },
+    { updateError: true },
     { deliveryError: true },
     { worker: {
       state: "redundant", addEventListener() {}, removeEventListener() {},
@@ -343,7 +413,9 @@ test("worker registration, activation and delivery failures preserve updates for
     const manifest = { fingerprint: fingerprint("b"), scheme: "git-commit", url: "changelog.html" };
     const failed = createPage({ ...workerNavigator(options), values: initial.values, permission: "granted", manifest });
     await finishCheck();
-    assert.match(failed.status.textContent, /Could not show the changelog notification.*retry/);
+    assert.match(failed.status.textContent, options.deliveryError
+      ? /Could not show the changelog notification.*retry/
+      : /Could not update the notification service.*retry/);
     assert.equal(JSON.parse(failed.values.get(stateKey)).fingerprint, fingerprint("a"));
     assert.equal(failed.sessionValues.has(`${stateKey}:checked`), false);
     const worker = workerNavigator();
