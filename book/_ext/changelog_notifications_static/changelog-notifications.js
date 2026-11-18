@@ -180,13 +180,7 @@
     return manifest;
   }
 
-  async function notify(manifest) {
-    const title = "Workbook changelog updated";
-    const body = "Open the changelog to see what has changed.";
-    const target = new URL(manifest.url, bookUrl);
-    if (target.origin !== bookUrl.origin || !target.pathname.startsWith(bookUrl.pathname)) {
-      throw new Error("Invalid changelog notification URL");
-    }
+  async function prepareWorker() {
     const registrations = await navigator.serviceWorker.getRegistrations();
     const existing = registrations.find((registration) => registration.scope === workerScope.href);
     if (existing && [existing.active, existing.waiting, existing.installing]
@@ -196,7 +190,8 @@
     const registration = await navigator.serviceWorker.register(workerUrl.href, {
       scope: workerScope.href,
     });
-    const worker = registration.active || registration.installing || registration.waiting;
+    await registration.update();
+    const worker = registration.installing || registration.waiting || registration.active;
     if (!worker) throw new Error("Changelog notification worker is unavailable");
     if (worker.state !== "activated") {
       await new Promise((resolve, reject) => {
@@ -213,6 +208,16 @@
         stateChanged();
       });
     }
+    return registration;
+  }
+
+  async function notify(manifest, registration) {
+    const title = "Workbook changelog updated";
+    const body = "Open the changelog to see what has changed.";
+    const target = new URL(manifest.url, bookUrl);
+    if (target.origin !== bookUrl.origin || !target.pathname.startsWith(bookUrl.pathname)) {
+      throw new Error("Invalid changelog notification URL");
+    }
     const state = readState();
     if (!state || Notification.permission !== "granted" || state.scheme !== manifest.scheme
       || state.fingerprint === manifest.fingerprint) return;
@@ -225,16 +230,20 @@
   // stored commit, since the reader is already seeing the current content.
   async function check() {
     const alreadyChecked = Boolean(sessionStorage.getItem(sessionKey));
-    let delivering = false;
+    let phase = "check";
     try {
       if (!readState() || Notification.permission !== "granted") return;
+      phase = "worker";
+      const registration = await prepareWorker();
+      if (!readState() || Notification.permission !== "granted") return;
+      phase = "check";
       const manifest = await getManifest();
       const state = readState();
       if (!state || Notification.permission !== "granted") return;
       if (!alreadyChecked && state.scheme === manifest.scheme && state.fingerprint !== manifest.fingerprint) {
-        delivering = true;
-        await notify(manifest);
-        delivering = false;
+        phase = "notification";
+        await notify(manifest, registration);
+        phase = "check";
         const current = readState();
         if (!current || Notification.permission !== "granted" || current.fingerprint !== state.fingerprint
           || current.scheme !== state.scheme) return;
@@ -245,8 +254,13 @@
       sessionStorage.setItem(sessionKey, "1");
       render();
     } catch (error) {
-      if (alreadyChecked) return;
-      setStatus(delivering
+      if (alreadyChecked && phase !== "worker") {
+        console.error("Could not check changelog notifications:", error);
+        return;
+      }
+      setStatus(phase === "worker"
+        ? "Could not update the notification service; navigating to another page will retry."
+        : phase === "notification"
         ? "Could not show the changelog notification; navigating to another page will retry."
         : "Could not check the changelog; navigating to another page will retry.");
       showMenu(true);
