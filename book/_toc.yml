@@ -156,6 +156,9 @@ parts:
         sections:
         - file: convert_files/mesh_utils.md
         - file: convert_files/benchmark_operations.md
+    - file: assignments/WS2.2/README.md
+      sections:
+      - file: assignments/WS2.2/WS_2_2.ipynb
 
 - caption: Miscellaneous
   chapters:
