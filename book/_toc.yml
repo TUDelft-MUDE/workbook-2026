@@ -164,6 +164,9 @@ parts:
     - file: assignments/GA2.2/README.md
       sections:
       - file: assignments/GA2.2/contamination.ipynb
+      - file: convert_files/mesh_utils_friday.md
+      - file: convert_files/postprocess.md
+      # - file: assignments/GA2.2/report.md
 
 - caption: Miscellaneous
   chapters:
