@@ -161,6 +161,9 @@ parts:
     - file: assignments/WS2.2/README.md
       sections:
       - file: assignments/WS2.2/WS_2_2.ipynb
+    - file: assignments/GA2.2/README.md
+      sections:
+      - file: assignments/GA2.2/contamination.ipynb
 
 - caption: Miscellaneous
   chapters:
