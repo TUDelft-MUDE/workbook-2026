@@ -167,7 +167,7 @@ parts:
         sections:
         - file: convert_files/mesh_utils_friday.md
         - file: convert_files/postprocess.md
-     - file: assignments/GA2.2/report.md
+      - file: assignments/GA2.2/report.md
   - file: weeks/week2_3.md
     sections:
     - file: assignments/PA.3/README.md
