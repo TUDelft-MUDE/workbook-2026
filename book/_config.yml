@@ -22,6 +22,7 @@ sphinx:
       repository_branch: "release"
       use_repository_button: true
       use_issues_button : true
+      use_notification_button: true
     html_show_copyright: false
     html_last_updated_fmt: ''
     html_static_path: ["figures"] # add folders that contain files that need to be included, such as the location of the logo(s)
@@ -35,6 +36,12 @@ sphinx:
     myst_linkify_fuzzy_links: false
     html_linkcheck_enabled: true 
     nitpicky: true
+    linkcheck_ignore:
+      - https://github.com/signup
+      - https://software.tudelft.nl/592/
+      - https://www.anaconda.com/docs/reference/troubleshooting#this-package-is-incompatible-with-this-version-of-macos-error-when-running-a-pkg-installer-on-osx
+      - https://sourceforge.net/projects/git-osx-installer/files/
+      - https://stackoverflow.com/questions
   extra_extensions:
     - sphinx.ext.imgconverter
     - sphinx.ext.extlinks
@@ -42,6 +49,7 @@ sphinx:
     - sphinx_tudelft_theme
   local_extensions:
     html_linkcheck: _ext/
+    changelog_notifications: _ext/
 
 teachbooks:
   attribution_color: attributiongrey

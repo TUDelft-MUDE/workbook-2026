@@ -1,0 +1,27 @@
+<div class="dropdown changelog-notifications">
+  <button type="button" class="btn btn-sm" disabled
+          aria-label="Changelog notification settings" aria-expanded="false"
+          data-bs-toggle="dropdown">
+    <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
+  </button>
+  <div class="dropdown-menu changelog-notifications-menu"
+       role="region" aria-label="Changelog notifications">
+    <div class="changelog-notifications-status" hidden>
+      <span class="dropdown-item-text" role="status"></span>
+      <button type="button" class="btn btn-sm changelog-notifications-status-close"
+              data-changelog-status-close aria-label="Close notification message">&times;</button>
+    </div>
+    <div class="changelog-notifications-intro" hidden>
+      <p class="dropdown-item-text">Get notified about changelog updates when you open the workbook?</p>
+      <button type="button" class="btn btn-sm dropdown-item" data-changelog-dismiss>
+        <span class="btn__icon-container"><i class="fa-solid fa-xmark" aria-hidden="true"></i></span>
+        <span class="btn__text-container">Not now</span>
+      </button>
+    </div>
+    <button type="button" class="btn btn-sm dropdown-item changelog-notifications-toggle"
+            data-changelog-toggle aria-pressed="false">
+      <span class="btn__icon-container" data-changelog-toggle-icon><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+      <span class="btn__text-container" data-changelog-toggle-label>Enable notifications</span>
+    </button>
+  </div>
+</div>

@@ -32,7 +32,7 @@ jobs:
           scan_repository() {
             local repository="$1"
             local display_name="$2"
-            local pathspec="$3"
+            shift 2
 
             while IFS= read -r -d '' file; do
               file_path="$repository/$file"
@@ -58,10 +58,10 @@ jobs:
                 echo "HTML tags found in: $display_name/$file"
                 printf '1' >> "$matches_file"
               fi
-            done < <(git -C "$repository" ls-files -z -- "$pathspec")
+            done < <(git -C "$repository" ls-files -z -- "$@")
           }
 
-          scan_repository . repository book/
+          scan_repository . repository book/ ':(exclude)book/_ext/**'
 
           while IFS= read -r -d '' submodule; do
             case "$submodule" in
