@@ -180,7 +180,7 @@ parts:
         - file: convert_files/max_even_square.md
     - file: assignments/WS2.3/README.md
       sections:
-      - file: assignments/WS2.2/DFT.ipynb
+      - file: assignments/WS2.3/DFT.ipynb
     #- file: assignments/GA2.3/README.md
     #  sections:
     #  - file: assignments/GA2.3/Analysis.ipynb
