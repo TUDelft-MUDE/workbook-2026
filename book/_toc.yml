@@ -178,7 +178,7 @@ parts:
       - file: assignments/PA2.3/4_errors.ipynb
         sections:
         - file: convert_files/max_even_square.md
-    - file: assignments/WS2.2/README.md
+    - file: assignments/WS2.3/README.md
       sections:
       - file: assignments/WS2.2/DFT.ipynb
     #- file: assignments/GA2.3/README.md
