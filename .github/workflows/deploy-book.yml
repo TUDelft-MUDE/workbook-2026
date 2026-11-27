@@ -340,6 +340,14 @@ jobs:
         ref: ${{ matrix.branch }}
         token: ${{ steps.app-token.outputs.token }}
         fetch-depth: 0
+    - name: Record release build commit
+      if: matrix.branch == (vars.CHANGELOG_RELEASE_BRANCH || 'release')
+      env:
+        RELEASE_BRANCH: ${{ matrix.branch }}
+        PUSH_BRANCH: ${{ github.ref_name }}
+        PUSH_BEFORE: ${{ github.event.before }}
+      run: |
+        python3 -c 'import json, os, subprocess; json.dump({"branch": os.environ["RELEASE_BRANCH"], "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "push_branch": os.environ["PUSH_BRANCH"], "before": os.environ["PUSH_BEFORE"]}, open("changelog-release-build.json", "w"))'
     - name: Configure submodule authentication
       run: |
         git config --global url."https://x-access-token:${{ steps.submodule-token.outputs.token }}@github.com/MUDE-2026/".insteadOf "https://github.com/MUDE-2026/"
@@ -523,6 +531,14 @@ jobs:
         name: ${{ env.MATRIX_BRANCH_NAME_CLEAN }}
         path: "book/_build/html"
 
+    - name: Publish successful release build metadata
+      if: success() && matrix.branch == (vars.CHANGELOG_RELEASE_BRANCH || 'release')
+      uses: actions/upload-artifact@v7
+      with:
+        name: changelog-release-build
+        path: changelog-release-build.json
+        if-no-files-found: error
+
   deploy-books:
     # Run after build-books, even if it failed
     if: >-
@@ -556,6 +572,10 @@ jobs:
         mkdir _buildstatus/
         mv final/_summary-* _summaries
         mv final/_buildstatus-* _buildstatus
+        if [ -d final/changelog-release-build ]; then
+          rm final/changelog-release-build/changelog-release-build.json
+          rmdir final/changelog-release-build
+        fi
 
     - name: Clean artifacts (1)
       uses: geekyeggo/delete-artifact@v6
