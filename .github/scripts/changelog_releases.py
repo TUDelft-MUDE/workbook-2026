@@ -1,8 +1,12 @@
-"""Create GitHub releases for versions introduced on the target branch."""
+"""Discover changelog versions and publish built GitHub releases."""
 
+import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
 
@@ -10,13 +14,14 @@ CHANGELOG = "book/changelog.md"
 HEADING = re.compile(
     r"^##\s+\d{4}-\d{2}-\d{2}:\s*(v\d+\.\d+\.\d+(?:\.pre-release)?)\s*$"
 )
-SECTION = re.compile(r"^#{1,2}\s")
+SECTION = re.compile(r"^##\s+(?:\d{4}-\d{2}-\d{2}:\s*)?v\d+(?:\.\d+)*(?:\.pre-release)?\s*$")
 FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 LINK = re.compile(r"(\]\()<?([^\s()<>]+)>?(\))")
 
 
-def run(*args, input=None):
-    return subprocess.run(args, input=input, text=True, capture_output=True, check=True).stdout
+def run(*args, input=None, cwd=None, env=None):
+    return subprocess.run(args, input=input, cwd=cwd, env=env, text=True,
+                          capture_output=True, check=True).stdout
 
 
 def sections(text):
@@ -105,41 +110,48 @@ def release_notes(body, repository, commit):
     return LINK.sub(absolute_link, body)
 
 
-def publish(version, commit, body, repository):
+def build_book(commit, directory, preprocess):
+    checkout = Path(directory) / "source"
+    run("git", "clone", "--no-checkout", "--no-hardlinks", str(Path.cwd()), str(checkout))
+    run("git", "checkout", "--detach", commit, cwd=checkout)
+    run("git", "submodule", "update", "--init", "--recursive", cwd=checkout)
+    venv = Path(directory) / "venv"
+    run(sys.executable, "-m", "venv", str(venv))
+    run(str(venv / "bin/python"), "-m", "pip", "install", "-r", "requirements.txt", cwd=checkout)
+    command = [str(venv / "bin/teachbooks"), "build"]
+    if preprocess:
+        command.append("--release")
+    command.append("book/")
+    env = os.environ.copy()
+    env["PATH"] = f"{venv / 'bin'}{os.pathsep}{env.get('PATH', '')}"
+    env["VIRTUAL_ENV"] = str(venv)
+    run(*command, cwd=checkout, env=env)
+    output = checkout / "book/_build/html"
+    if not output.is_dir() or not (output / "index.html").is_file():
+        raise ValueError(f"Book build for {commit} did not produce HTML")
+    return shutil.make_archive(str(Path(directory) / "workbook-html"), "zip", root_dir=output)
+
+
+def publish(version, commit, body, repository, preprocess=False):
     ref = f"refs/tags/{version}"
     if run("git", "ls-remote", "--refs", "origin", ref).strip():
         print(f"Skipping {version}: tag already exists", flush=True)
         return
-    run("gh", "api", "--method", "POST", f"repos/{repository}/git/refs",
-        "-f", f"ref={ref}", "-f", f"sha={commit}")
-    args = [
-        "gh", "release", "create", version, "--repo", repository, "--target", commit,
-        "--title", version, "--notes-file", "-", "--verify-tag",
-    ]
-    if version.endswith(".pre-release"):
-        args.append("--prerelease")
-    print(f"Creating {version} at {commit}", flush=True)
-    try:
-        run(*args, input=release_notes(body, repository, commit))
-    except subprocess.CalledProcessError:
-        print(f"Tag {version} was created, but the release failed; create the release manually.",
-              file=sys.stderr)
-        raise
-
-
-def main():
-    if len(sys.argv) != 4:
-        raise ValueError("Expected BEFORE AFTER OWNER/REPOSITORY")
-    before, after, repository = sys.argv[1:]
-    for version, commit, body in new_releases(before, after):
-        publish(version, commit, body, repository)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except (ValueError, subprocess.CalledProcessError) as error:
-        if isinstance(error, subprocess.CalledProcessError) and error.stderr:
-            print(error.stderr, file=sys.stderr, end="")
-        print(f"Changelog release creation failed: {error}", file=sys.stderr)
-        sys.exit(1)
+    print(f"Building {version} at {commit}", flush=True)
+    with tempfile.TemporaryDirectory(prefix="changelog-release-") as directory:
+        artifact = build_book(commit, directory, preprocess)
+        run("gh", "api", "--method", "POST", f"repos/{repository}/git/refs",
+            "-f", f"ref={ref}", "-f", f"sha={commit}")
+        args = [
+            "gh", "release", "create", version, artifact, "--repo", repository, "--target", commit,
+            "--title", version, "--notes-file", "-", "--verify-tag",
+        ]
+        if version.endswith(".pre-release"):
+            args.append("--prerelease")
+        print(f"Creating {version} at {commit}", flush=True)
+        try:
+            run(*args, input=release_notes(body, repository, commit))
+        except subprocess.CalledProcessError:
+            print(f"Tag {version} was created, but the release failed; create the release manually.",
+                  file=sys.stderr)
+            raise

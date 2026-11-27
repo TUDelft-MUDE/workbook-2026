@@ -1,38 +1,78 @@
 name: Create changelog releases
 
 on:
-  push:
-  pull_request:
-    paths:
-      - .github/workflows/changelog-releases.yml
-      - .github/scripts/changelog_releases.py
-      - tests/test_changelog_releases.py
+  workflow_run:
+    # Replace with the name of the workflow that records changelog-release-build.
+    workflows: [deploy-book]
+    types: [completed]
+concurrency:
+  group: changelog-release-processing
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  test:
-    if: github.event_name == 'pull_request' || github.ref == format('refs/heads/{0}', vars.CHANGELOG_RELEASE_BRANCH || 'release')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - run: python3 -m unittest discover -s tests -p test_changelog_releases.py
-
   create-releases:
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', vars.CHANGELOG_RELEASE_BRANCH || 'release')
-    needs: test
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == (vars.CHANGELOG_DEPLOY_BRANCH || 'release') &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
+      !(github.event.workflow_run.event == 'push' && contains(github.event.workflow_run.head_commit.message, '[skip deploy-book]'))
     permissions:
       contents: write
+      actions: read
     runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      APP_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Create submodule organization token
+        if: env.APP_CLIENT_ID != '' && env.APP_PRIVATE_KEY != ''
+        id: submodule-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ vars.CHANGELOG_SUBMODULE_ORGANIZATION || 'MUDE-2026' }}
+      - name: Validate submodule credentials
+        run: |
+          if [[ -n "$APP_CLIENT_ID" && -z "$APP_PRIVATE_KEY" ]] || [[ -z "$APP_CLIENT_ID" && -n "$APP_PRIVATE_KEY" ]]; then
+            echo "::error::Both CLIENT_ID and APP_PRIVATE_KEY must be configured for private submodules."
+            exit 1
+          fi
+      - name: Configure submodule authentication
+        if: steps.submodule-token.outcome == 'success'
+        env:
+          SUBMODULE_TOKEN: ${{ steps.submodule-token.outputs.token }}
+          SUBMODULE_ORG: ${{ vars.CHANGELOG_SUBMODULE_ORGANIZATION || 'MUDE-2026' }}
+        run: git config --global url."https://x-access-token:${SUBMODULE_TOKEN}@github.com/${SUBMODULE_ORG}/".insteadOf "https://github.com/${SUBMODULE_ORG}/"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
       - name: Create releases for new changelog versions
+        id: releases
         env:
           GH_TOKEN: ${{ github.token }}
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
           REPOSITORY: ${{ github.repository }}
-        run: python3 .github/scripts/changelog_releases.py "$BEFORE" "$AFTER" "$REPOSITORY"
+          RELEASE_BRANCH: ${{ vars.CHANGELOG_RELEASE_BRANCH || 'release' }}
+          BRANCHES_TO_PREPROCESS: ${{ vars.BRANCHES_TO_PREPROCESS }}
+          INITIAL_BASELINE: ${{ vars.CHANGELOG_RELEASE_INITIAL_BASELINE }}
+          DEPLOY_RUN: ${{ github.event.workflow_run.id }}
+          CURRENT_RUN: ${{ github.run_id }}
+          BASELINE_FILE: ${{ runner.temp }}/changelog-release-baseline.json
+        run: |
+          python3 .github/scripts/release_deployed_book.py
+          if [ -f "$BASELINE_FILE" ]; then echo "saved=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Save processed build commit
+        if: steps.releases.outputs.saved == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: changelog-release-baseline
+          path: ${{ runner.temp }}/changelog-release-baseline.json
+          if-no-files-found: error
