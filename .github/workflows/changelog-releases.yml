@@ -1,0 +1,38 @@
+name: Create changelog releases
+
+on:
+  push:
+  pull_request:
+    paths:
+      - .github/workflows/changelog-releases.yml
+      - .github/scripts/changelog_releases.py
+      - tests/test_changelog_releases.py
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request' || github.ref == format('refs/heads/{0}', vars.CHANGELOG_RELEASE_BRANCH || 'release')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 -m unittest discover -s tests -p test_changelog_releases.py
+
+  create-releases:
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', vars.CHANGELOG_RELEASE_BRANCH || 'release')
+    needs: test
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Create releases for new changelog versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: python3 .github/scripts/changelog_releases.py "$BEFORE" "$AFTER" "$REPOSITORY"
