@@ -41,6 +41,7 @@ sphinx:
       - https://www.anaconda.com/docs/reference/troubleshooting#this-package-is-incompatible-with-this-version-of-macos-error-when-running-a-pkg-installer-on-osx
       - https://sourceforge.net/projects/git-osx-installer/files/
       - https://stackoverflow.com/questions
+      - https://doi.org/10.3390/s21237946
   extra_extensions:
     - sphinx.ext.imgconverter
     - sphinx.ext.extlinks
