@@ -181,9 +181,9 @@ parts:
     - file: assignments/WS2.3/README.md
       sections:
       - file: assignments/WS2.3/DFT.ipynb
-    #- file: assignments/GA2.3/README.md
-    #  sections:
-    #  - file: assignments/GA2.3/Analysis.ipynb
+    - file: assignments/GA2.3/README.md
+      sections:
+      - file: assignments/GA2.3/Analysis.ipynb
     #  - file: assignments/GA2.3/report.md
     
 
